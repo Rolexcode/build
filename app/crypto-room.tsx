@@ -58,7 +58,7 @@ function RealAvatar({accent}:{accent:string}) {
   useFrame(({clock})=>{
     if(ref.current) ref.current.position.y=0.02+Math.sin(clock.elapsedTime*1.7)*0.015;
   });
-  return <group ref={ref} position={[0.65,0,0.15]} scale={1.85}>
+  return <group ref={ref} position={[0.45,0,0.25]} scale={0.92}>
     {model ? <primitive object={model.clone(true)} /> : <>
       <mesh position={[0,0.9,0]}><capsuleGeometry args={[0.3,1.05,8,16]}/><meshStandardMaterial color={accent}/></mesh>
       <mesh position={[0,1.75,0]}><sphereGeometry args={[0.38,24,18]}/><meshStandardMaterial color="#7c5544"/></mesh>
@@ -115,14 +115,14 @@ function Scene({style}:{style:RoomStyle}) {
     <Window style={style}/><Sofa style={style}/><CoffeeTable style={style}/><Desk style={style}/><Plant position={[-4.4,0,-1.8]}/>
     <RealAvatar accent={style.accent}/>
     {style.luxe && <Box position={[4.3,2.35,-2.8]} size={[2.8,1.8,0.12]} color="#151b18"/>}
-    <Orbit target={[0,1.25,0]}/>
+    <Orbit target={[0,1.15,0]}/>
   </>;
 }
 
 export default function CryptoRoom({originName,cash}:{originName:string;cash:string}) {
   const style=styles[originName]??styles["Web3 Jobber"];
   return <div className="three-room-canvas">
-    <Canvas shadows dpr={[1,1.5]} camera={{position:[8.2,5.8,9.4],fov:40}} fallback={<div className="three-fallback">3D world unavailable on this device.</div>}>
+    <Canvas shadows dpr={[1,1.5]} camera={{position:[10.8,7.2,12.8],fov:42}} fallback={<div className="three-fallback">3D world unavailable on this device.</div>}>
       <color attach="background" args={[style.luxe?"#d8d4c6":"#d7e1d3"]}/><Scene style={style}/>
     </Canvas>
     <div className="room-3d-hint">DRAG TO LOOK AROUND · 360°</div>
