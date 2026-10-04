@@ -1,6 +1,9 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
+
+const CryptoRoom = dynamic(() => import("./crypto-room"), { ssr: false });
 
 type Origin = {
   name: string;
@@ -25,6 +28,7 @@ const origins: Origin[] = [
   { name: "Degen", tagline: "Risk is your cardio.", cash: "$1,250", trait: "Degen", color: "#ff6b35" },
   { name: "Web3 Jobber", tagline: "You mod, shill, host, grind.", cash: "$2,100", trait: "Operator", color: "#e44f8f" },
   { name: "NFT Native", tagline: "The PFP is the identity.", cash: "$1,700", trait: "Collector", color: "#d09b25" },
+  { name: "Crypto Guru", tagline: "You caught the cycle early.", cash: "$1,250,000", trait: "Whale", color: "#d5ad47" },
 ];
 
 const pfps: PFP[] = [
@@ -153,19 +157,13 @@ export default function Home() {
               <div><span>FUN</span><b><i style={{ width: "91%" }} /></b></div>
             </div>
             <div className="world-actions">
-              <button className="game-button primary-game" onClick={() => alert("The shared city is the next build slice.")}>EXPLORE CRYPTO COMMUNITY <b>→</b></button>
+              <button className="game-button primary-game" onClick={() => alert("City exploration is the next build slice.")}>STEP INTO THE CITY <b>→</b></button>
               <button className="game-button ghost-game" onClick={() => setScreen("reveal")}>VIEW LIFE</button>
             </div>
           </div>
 
           <div className="room">
-            <div className="window"><span>₿</span><span>◎</span><span>Ξ</span></div>
-            <div className="cityline city-a" /><div className="cityline city-b" /><div className="cityline city-c" />
-            <div className="rug" />
-            <div className="sofa"><span /><span /></div>
-            <div className="desk"><div className="monitor">LIVE<br /><strong>ETH</strong></div></div>
-            <div className="avatar-spot"><div className="avatar-shadow" /><div className="avatar-card"><PfpImage pfp={pfp} /></div></div>
-            <div className="scene-label"><span>HOME</span><strong>YOUR FIRST APARTMENT</strong></div>
+            <CryptoRoom originName={origin.name} cash={origin.cash} />
           </div>
         </section>
       </main>
@@ -191,7 +189,7 @@ export default function Home() {
               <div><span>STARTING CASH</span><strong>{origin.cash}</strong><small>{origin.trait} · GENESIS</small></div>
             </div>
 
-            <button className="enter-button" onClick={() => setScreen("world")}>ENTER CRYPTO LIFE <b>↗</b></button>
+            <button className="enter-button" onClick={() => setScreen("world")}>EXPLORE CRYPTO COMMUNITY <b>↗</b></button>
             <button className="reset-link" onClick={() => { localStorage.removeItem("crypto-life-life"); setName(""); setUsername(""); setOrigin(null); setPfp(null); setLifeNumber(null); setScreen("signup"); }}>START OVER</button>
           </div>
 
