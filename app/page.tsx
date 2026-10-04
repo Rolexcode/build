@@ -96,23 +96,7 @@ export default function Home() {
   const [pfp, setPfp] = useState<PFP | null>(null);
   const [lifeNumber, setLifeNumber] = useState<number | null>(null);
 
-  useEffect(() => {
-    const saved = localStorage.getItem("crypto-life-life");
-    if (saved) {
-      try {
-        const life = JSON.parse(saved);
-        setName(life.name || "");
-        setUsername(life.username || "");
-        setOrigin(life.origin || null);
-        setPfp(life.pfp || null);
-        setLifeNumber(life.lifeNumber || null);
-        if (life.name && life.username && life.origin && life.pfp) setScreen("reveal");
-      } catch {
-        localStorage.removeItem("crypto-life-life");
-      }
-    }
-    setHydrated(true);
-  }, []);
+  useEffect(() => { setHydrated(true); }, []);
 
   const gallery = useMemo(() => pfps, []);
 
@@ -128,7 +112,6 @@ export default function Home() {
       pfp: nextPfp,
       lifeNumber: nextLifeNumber,
     };
-    localStorage.setItem("crypto-life-life", JSON.stringify(life));
     setOrigin(nextOrigin);
     setPfp(nextPfp);
     setLifeNumber(nextLifeNumber);
@@ -190,7 +173,7 @@ export default function Home() {
             </div>
 
             <button className="enter-button" onClick={() => setScreen("world")}>EXPLORE CRYPTO COMMUNITY <b>↗</b></button>
-            <button className="reset-link" onClick={() => { localStorage.removeItem("crypto-life-life"); setName(""); setUsername(""); setOrigin(null); setPfp(null); setLifeNumber(null); setScreen("signup"); }}>START OVER</button>
+            <button className="reset-link" onClick={() => { setName(""); setUsername(""); setOrigin(null); setPfp(null); setLifeNumber(null); setScreen("signup"); }}>START OVER</button>
           </div>
 
           <div className="pfp-reveal">
