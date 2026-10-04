@@ -66,3 +66,53 @@ button:disabled{cursor:not-allowed}
 .character-builder-screen .pfp-frame{background:#dfe4d6}
 @media(max-width:980px){.origin-layout{grid-template-columns:1fr}.origin-preview{height:360px;order:-1}.origin-copy{max-width:650px}.origin-card{width:100%}}
 @media(max-width:600px){.origin-layout{padding:10px 16px 50px;gap:24px}.origin-copy h1{font-size:clamp(56px,17vw,82px)}.origin-copy>p{font-size:16px}.origin-preview{height:260px;border-radius:25px}.origin-world-card{padding:18px}.origin-world-card>strong{font-size:27px}.origin-card{border-radius:22px}}
+
+
+.character-screen{min-height:100vh;background:#eef0e7}
+.character-builder{min-height:calc(100vh - 76px);display:grid;grid-template-columns:minmax(380px,.95fr) minmax(420px,.85fr);gap:clamp(50px,8vw,130px);align-items:center;padding:30px clamp(20px,8vw,120px) 70px}
+.character-intro{max-width:650px}
+.character-intro h1{font-size:clamp(64px,8vw,108px);line-height:.86;letter-spacing:-.075em;margin:0;font-weight:800}
+.character-intro h1 span{color:#8c9287}
+.character-intro>p{font-size:18px;line-height:1.5;color:var(--muted);max-width:540px;margin:24px 0}
+.character-sheet{background:var(--paper);border:1px solid var(--line);border-radius:25px;overflow:hidden;box-shadow:var(--shadow);margin:25px 0}
+.sheet-label{padding:13px 18px;border-bottom:1px solid var(--line);font:9px 'Space Mono';letter-spacing:.09em;color:#8c9488}
+.sheet-main{display:flex;justify-content:space-between;align-items:center;padding:18px;border-bottom:1px solid var(--line)}
+.sheet-main small,.sheet-grid small{display:block;font:8px 'Space Mono';letter-spacing:.08em;color:#92998e;margin-bottom:6px}
+.sheet-main strong{display:block;font-size:22px;letter-spacing:-.04em}
+.sheet-main span{display:block;font:10px 'Space Mono';color:#7e877b;margin-top:3px}
+.sheet-life{text-align:right}.sheet-life strong{font:18px 'Space Mono'}
+.sheet-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line)}
+.sheet-grid>div{background:var(--paper);padding:15px 18px;min-height:78px}
+.sheet-grid strong{display:block;font-size:14px;letter-spacing:-.02em}
+.sheet-grid span{display:block;color:#92998e;font:8px 'Space Mono';margin-top:5px;letter-spacing:.03em}
+.character-stage{width:min(560px,100%);justify-self:end}
+.stage-top{display:flex;justify-content:space-between;margin:0 5px 10px;font:9px 'Space Mono';letter-spacing:.08em;color:#858d81}
+.stage-top b{color:#6e9321}
+.character-pfp-card{height:min(540px,62vh);min-height:420px;border:10px solid var(--paper);border-radius:38px;box-shadow:0 35px 90px rgba(32,40,29,.18);position:relative;overflow:hidden;display:grid;place-items:center;background:#dfe4d6}
+.character-pfp-backdrop{position:absolute;width:68%;aspect-ratio:1;border-radius:50%;filter:blur(60px);opacity:.65}
+.character-pfp-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(20,30,20,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(20,30,20,.045) 1px,transparent 1px);background-size:34px 34px}
+.character-pfp{position:relative;z-index:2;width:74%;height:74%;object-fit:contain}
+.character-badge{position:absolute;right:18px;bottom:18px;background:var(--ink);color:#fff;border-radius:14px;padding:10px 12px;z-index:3;text-align:right}
+.character-badge span{display:block;font:8px 'Space Mono';color:var(--green);letter-spacing:.08em}
+.character-badge strong{font-size:13px}
+.character-pfp-meta{display:flex;align-items:baseline;gap:12px;margin:13px 3px}
+.character-pfp-meta span{font:9px 'Space Mono';color:#7f8779;text-transform:uppercase}
+.character-pfp-meta strong{font-size:16px}
+.character-note{display:flex;gap:10px;align-items:center;background:rgba(255,253,246,.8);border:1px solid #d8d8ca;border-radius:14px;padding:11px 13px}
+.character-note span{color:#789f21}
+.character-note p{margin:0;color:#737b70;font-size:11px;line-height:1.35}
+.character-note strong{color:var(--ink)}
+@media(max-width:980px){
+  .character-builder{grid-template-columns:1fr;gap:30px;padding-top:15px}
+  .character-stage{justify-self:center;order:-1}
+  .character-intro{max-width:680px}
+  .character-pfp-card{height:min(500px,70vh)}
+}
+@media(max-width:600px){
+  .character-builder{padding:10px 16px 50px;gap:24px}
+  .character-intro h1{font-size:clamp(56px,17vw,82px)}
+  .character-intro>p{font-size:16px}
+  .character-pfp-card{min-height:300px;height:78vw;border-width:7px;border-radius:28px}
+  .sheet-main{padding:15px}.sheet-grid>div{padding:13px 14px}
+  .character-note{align-items:flex-start}
+}
