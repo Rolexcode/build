@@ -148,31 +148,63 @@ export default function Home() {
 
   if (screen === "pfp" && origin && pfp) {
     return (
-      <main className="reveal-screen">
+      <main className="character-screen">
         <header className="minimal-topbar">
           <div className="brand"><span className="brand-mark">◆</span><strong>CRYPTO LIFE</strong></div>
-          <span className="tiny-status">03 / 03 · IDENTITY</span>
+          <span className="tiny-status">03 / 03 · CHARACTER</span>
         </header>
-        <section className="reveal-layout character-builder-screen">
-          <div className="reveal-copy">
-            <span className="eyebrow">YOUR CHARACTER · @{username}</span>
-            <h1>Now meet<br /><span>your PFP.</span></h1>
-            <p>This is the face people will know in Crypto Life. Your PFP follows you through your profile, chat, leaderboard and the world.</p>
-            <div className="life-ticket">
-              <div><span>STARTING LIFE</span><strong>{origin.name}</strong><small>{origin.tagline}</small></div>
-              <div><span>STARTING CASH</span><strong>{origin.cash}</strong><small>{origin.trait} · GENESIS</small></div>
+
+        <section className="character-builder">
+          <div className="character-intro">
+            <span className="eyebrow">CHARACTER BUILDER · @{username}</span>
+            <h1>Meet the life<br /><span>you were dealt.</span></h1>
+            <p>Your starting archetype and PFP are assigned at genesis. This is the identity you'll carry into the city.</p>
+
+            <div className="character-sheet">
+              <div className="sheet-label">IDENTITY</div>
+              <div className="sheet-main">
+                <div>
+                  <small>NAME</small>
+                  <strong>{name}</strong>
+                  <span>@{username}</span>
+                </div>
+                <div className="sheet-life">
+                  <small>LIFE</small>
+                  <strong>#{lifeNumber}</strong>
+                </div>
+              </div>
+
+              <div className="sheet-grid">
+                <div><small>ORIGIN</small><strong>{origin.name}</strong><span>{origin.tagline}</span></div>
+                <div><small>TRAIT</small><strong>{origin.trait}</strong><span>GENESIS TRAIT</span></div>
+                <div><small>CASH</small><strong>{origin.cash}</strong><span>STARTING BALANCE</span></div>
+                <div><small>HOME</small><strong>{origin.name === "Crypto Guru" ? "Penthouse" : origin.name === "NFT Native" ? "Collector Loft" : "Apartment"}</strong><span>YOUR FIRST PLACE</span></div>
+              </div>
             </div>
-            <button className="enter-button" onClick={() => setScreen("world")}>ENTER MY LIFE <b>↗</b></button>
+
+            <button className="enter-button" onClick={() => setScreen("world")}>LOCK IN CHARACTER <b>→</b></button>
             <button className="reset-link" onClick={startOver}>START OVER</button>
           </div>
-          <div className="pfp-reveal">
-            <div className="pfp-aura" style={{ background: pfp.accent }} />
-            <div className="pfp-frame">
-              <div className="pfp-grid" />
-              <PfpImage pfp={pfp} className="hero-pfp" />
-              <div className="pfp-stamp"><span>GENESIS</span><strong>#{lifeNumber}</strong></div>
+
+          <div className="character-stage">
+            <div className="stage-top">
+              <span>GENESIS PFP</span>
+              <b>ASSIGNED</b>
             </div>
-            <div className="pfp-name"><span>{pfp.collection}</span><strong>{pfp.name}</strong></div>
+            <div className="character-pfp-card">
+              <div className="character-pfp-backdrop" style={{ background: pfp.accent }} />
+              <div className="character-pfp-grid" />
+              <PfpImage pfp={pfp} className="character-pfp" />
+              <div className="character-badge"><span>GENESIS</span><strong>#{lifeNumber}</strong></div>
+            </div>
+            <div className="character-pfp-meta">
+              <span>{pfp.collection}</span>
+              <strong>{pfp.name}</strong>
+            </div>
+            <div className="character-note">
+              <span>✦</span>
+              <p><strong>This is your face in the world.</strong> It appears above your player, in chat, on profiles and on the leaderboard.</p>
+            </div>
           </div>
         </section>
       </main>
