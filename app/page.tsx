@@ -29,32 +29,39 @@ const origins: Origin[] = [
 
 const pfps: PFP[] = [
   {
-    id: "milady-1",
+    id: "milady-gyaru",
+    name: "Gyaru Milady",
+    collection: "Milady Maker",
+    image: "https://www.miladymaker.net/images/gyaru.png",
+    accent: "#d98b7b",
+  },
+  {
+    id: "milady-hypebeast",
+    name: "Hypebeast Milady",
+    collection: "Milady Maker",
+    image: "https://www.miladymaker.net/images/hypebeast.png",
+    accent: "#9aa87c",
+  },
+  {
+    id: "punk-3100",
     name: "CryptoPunk #3100",
     collection: "CryptoPunks",
     image: "https://files.larvalabs.com/cryptopunks/original/punk3100.png",
     accent: "#79d8ff",
   },
   {
-    id: "penguin-420",
-    name: "CryptoPunk #4821",
-    collection: "CryptoPunks",
-    image: "https://files.larvalabs.com/cryptopunks/original/punk4821.png",
-    accent: "#c6d5e0",
-  },
-  {
     id: "wojak-8",
-    name: "CryptoPunk #2039",
-    collection: "CryptoPunks",
-    image: "https://files.larvalabs.com/cryptopunks/original/punk2039.png",
-    accent: "#f1c27d",
+    name: "Rare Wojak #8",
+    collection: "Rare Wojak",
+    image: "https://rarewojak.com/images/wojaks/8.png",
+    accent: "#ff7a24",
   },
   {
-    id: "bonk-9",
-    name: "CryptoPunk #1001",
-    collection: "CryptoPunks",
-    image: "https://files.larvalabs.com/cryptopunks/original/punk1001.png",
-    accent: "#d9b26f",
+    id: "pudgy-1219",
+    name: "Pudgy Penguin #1219",
+    collection: "Pudgy Penguins",
+    image: "https://f8n-production-collection-assets.imgix.net/0xBd3531dA5CF5857e7CfAA92426877b022e612cf8/1219/nft.png?auto=format%2Ccompress&cs=srgb&fnd_key=v1&h=1200&q=70&w=1200",
+    accent: "#ef6f86",
   },
 ];
 
