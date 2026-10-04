@@ -89,7 +89,7 @@ function PfpImage({ pfp, className = "" }: { pfp: PFP; className?: string }) {
 
 export default function Home() {
   const [hydrated, setHydrated] = useState(false);
-  const [screen, setScreen] = useState<"signup" | "reveal" | "world">("signup");
+  const [screen, setScreen] = useState<"signup" | "origin" | "pfp" | "world">("signup");
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [origin, setOrigin] = useState<Origin | null>(null);
@@ -98,24 +98,21 @@ export default function Home() {
 
   useEffect(() => { setHydrated(true); }, []);
 
-  const gallery = useMemo(() => pfps, []);
-
   const createLife = () => {
     if (!name.trim() || username.trim().length < 3) return;
-    const nextOrigin = pick(origins);
-    const nextPfp = pick(pfps);
-    const nextLifeNumber = Math.floor(1000 + Math.random() * 9000);
-    const life = {
-      name: name.trim(),
-      username: username.trim().toLowerCase(),
-      origin: nextOrigin,
-      pfp: nextPfp,
-      lifeNumber: nextLifeNumber,
-    };
-    setOrigin(nextOrigin);
-    setPfp(nextPfp);
-    setLifeNumber(nextLifeNumber);
-    setScreen("reveal");
+    setOrigin(pick(origins));
+    setPfp(pick(pfps));
+    setLifeNumber(Math.floor(1000 + Math.random() * 9000));
+    setScreen("origin");
+  };
+
+  const startOver = () => {
+    setName("");
+    setUsername("");
+    setOrigin(null);
+    setPfp(null);
+    setLifeNumber(null);
+    setScreen("signup");
   };
 
   if (!hydrated) return <main className="boot"><div className="boot-mark">◆</div></main>;
@@ -128,7 +125,6 @@ export default function Home() {
           <div className="top-status"><span className="online-dot" /> YOUR LIFE · #{lifeNumber}</div>
           <div className="top-profile"><PfpImage pfp={pfp} /><span>@{username}</span></div>
         </header>
-
         <section className="home-scene">
           <div className="scene-copy">
             <span className="eyebrow">DAY 01 · 08:42 AM · GENESIS HUB</span>
@@ -141,41 +137,34 @@ export default function Home() {
             </div>
             <div className="world-actions">
               <button className="game-button primary-game" onClick={() => alert("City exploration is the next build slice.")}>STEP INTO THE CITY <b>→</b></button>
-              <button className="game-button ghost-game" onClick={() => setScreen("reveal")}>VIEW LIFE</button>
+              <button className="game-button ghost-game" onClick={() => setScreen("pfp")}>VIEW LIFE</button>
             </div>
           </div>
-
-          <div className="room">
-            <CryptoRoom originName={origin.name} cash={origin.cash} />
-          </div>
+          <div className="room"><CryptoRoom originName={origin.name} cash={origin.cash} /></div>
         </section>
       </main>
     );
   }
 
-  if (screen === "reveal" && origin && pfp) {
+  if (screen === "pfp" && origin && pfp) {
     return (
       <main className="reveal-screen">
         <header className="minimal-topbar">
           <div className="brand"><span className="brand-mark">◆</span><strong>CRYPTO LIFE</strong></div>
-          <span className="tiny-status">GENESIS · LIFE #{lifeNumber}</span>
+          <span className="tiny-status">03 / 03 · IDENTITY</span>
         </header>
-
-        <section className="reveal-layout">
+        <section className="reveal-layout character-builder-screen">
           <div className="reveal-copy">
-            <span className="eyebrow">WELCOME, @{username}</span>
-            <h1>This is<br /><span>your PFP.</span></h1>
-            <p>Your first life is already dealt. No wallet. No setup. No choosing a character from a menu. You get a PFP, a starting hand and a world to figure out.</p>
-
+            <span className="eyebrow">YOUR CHARACTER · @{username}</span>
+            <h1>Now meet<br /><span>your PFP.</span></h1>
+            <p>This is the face people will know in Crypto Life. Your PFP follows you through your profile, chat, leaderboard and the world.</p>
             <div className="life-ticket">
               <div><span>STARTING LIFE</span><strong>{origin.name}</strong><small>{origin.tagline}</small></div>
               <div><span>STARTING CASH</span><strong>{origin.cash}</strong><small>{origin.trait} · GENESIS</small></div>
             </div>
-
-            <button className="enter-button" onClick={() => setScreen("world")}>EXPLORE CRYPTO COMMUNITY <b>↗</b></button>
-            <button className="reset-link" onClick={() => { setName(""); setUsername(""); setOrigin(null); setPfp(null); setLifeNumber(null); setScreen("signup"); }}>START OVER</button>
+            <button className="enter-button" onClick={() => setScreen("world")}>ENTER MY LIFE <b>↗</b></button>
+            <button className="reset-link" onClick={startOver}>START OVER</button>
           </div>
-
           <div className="pfp-reveal">
             <div className="pfp-aura" style={{ background: pfp.accent }} />
             <div className="pfp-frame">
@@ -190,19 +179,57 @@ export default function Home() {
     );
   }
 
+  if (screen === "origin" && origin) {
+    return (
+      <main className="reveal-screen origin-screen">
+        <header className="minimal-topbar">
+          <div className="brand"><span className="brand-mark">◆</span><strong>CRYPTO LIFE</strong></div>
+          <span className="tiny-status">02 / 03 · STARTING LIFE</span>
+        </header>
+        <section className="origin-layout">
+          <div className="origin-copy">
+            <span className="eyebrow">LIFE DEALT · #{lifeNumber}</span>
+            <h1>You didn't<br /><span>choose this.</span></h1>
+            <p>Every life starts somewhere. Your first archetype, cash and trait are dealt at genesis. What you do with it is yours.</p>
+            <div className="origin-card">
+              <div className="origin-card-top"><span>YOUR STARTING LIFE</span><b>GENESIS</b></div>
+              <div className="origin-avatar"><PfpImage pfp={pfp!} /></div>
+              <h2>{origin.name}</h2>
+              <p>{origin.tagline}</p>
+              <div className="origin-stats">
+                <div><span>CASH</span><strong>{origin.cash}</strong></div>
+                <div><span>TRAIT</span><strong>{origin.trait}</strong></div>
+              </div>
+            </div>
+            <button className="enter-button" onClick={() => setScreen("pfp")}>REVEAL MY CHARACTER <b>→</b></button>
+            <button className="reset-link" onClick={startOver}>START OVER</button>
+          </div>
+          <div className="origin-preview">
+            <div className="origin-world-card">
+              <span>DAY 01</span>
+              <strong>{name.split(" ")[0]} just spawned.</strong>
+              <small>The city is already moving.</small>
+              <div className="origin-pfp-stack">
+                {pfps.slice(0, 4).map(item => <PfpImage key={item.id} pfp={item} />)}
+              </div>
+              <p>Thousands of lives. One shared timeline.</p>
+            </div>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
   return (
     <main className="onboarding">
       <header className="minimal-topbar">
         <div className="brand"><span className="brand-mark">◆</span><strong>CRYPTO LIFE</strong></div>
         <div className="tiny-status">18+ · BETA</div>
       </header>
-
       <section className="signup-layout">
         <div className="signup-copy">
           <div className="floating-pfps">
-            {gallery.map((item, index) => (
-              <div className={`float-pfp f${index + 1}`} key={item.id}><PfpImage pfp={item} /></div>
-            ))}
+            {pfps.map((item, index) => <div className={`float-pfp f${index + 1}`} key={item.id}><PfpImage pfp={item} /></div>)}
           </div>
           <span className="eyebrow">A LIFE SIM FOR THE CRYPTO-NATIVE</span>
           <h1>Make a life.<br /><span>Not a profile.</span></h1>
@@ -213,23 +240,19 @@ export default function Home() {
             <div className="teaser-chat"><b>GM</b><span>you coming?</span></div>
           </div>
         </div>
-
         <div className="signup-panel">
-          <div className="panel-head"><span>CREATE YOUR SIM</span><b>01 / 01</b></div>
+          <div className="panel-head"><span>CREATE YOUR SIM</span><b>01 / 03</b></div>
           <h2>Who are you?</h2>
-          <p className="panel-sub">Just your name and your handle. Everything else comes after.</p>
-
+          <p className="panel-sub">Just your name and your handle. Your life gets dealt next.</p>
           <div className="field">
             <label htmlFor="name">Your name</label>
             <input id="name" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Rolex" autoComplete="name" autoFocus />
           </div>
-
           <div className="field">
             <label htmlFor="username">Username</label>
             <div className="handle-input"><span>@</span><input id="username" value={username} onChange={e => setUsername(e.target.value.replace(/\s/g, "").toLowerCase())} placeholder="rolex" autoComplete="nickname" onKeyDown={e => { if (e.key === "Enter") createLife(); }} /></div>
             <small>This is your name in the world. Keep it clean.</small>
           </div>
-
           <button className="create-button" onClick={createLife} disabled={!name.trim() || username.trim().length < 3}>CREATE MY LIFE <b>→</b></button>
           <div className="no-wallet"><span>✦</span><p><strong>No wallet required.</strong> Your PFP is assigned from Crypto Life's genesis pool.</p></div>
           <div className="terms">By entering, you agree to the beta terms. 18+.</div>
