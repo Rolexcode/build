@@ -205,7 +205,7 @@ export default function Home() {
             <div className="pfp-name"><span>{pfp.collection}</span><strong>{pfp.name}</strong></div>
           </div>
         </section>
-      </main>;
+      </main>
   }
 
   return (
