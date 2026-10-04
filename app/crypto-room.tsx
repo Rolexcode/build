@@ -32,8 +32,8 @@ function Orbit({target}:{target:[number,number,number]}) {
     controls.enablePan=false;
     controls.enableDamping=true;
     controls.dampingFactor=0.08;
-    controls.minDistance=5.5;
-    controls.maxDistance=13;
+    controls.minDistance=7;
+    controls.maxDistance=16;
     controls.minPolarAngle=0.65;
     controls.maxPolarAngle=1.45;
     return ()=>controls.dispose();
