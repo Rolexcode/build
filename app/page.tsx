@@ -19,49 +19,42 @@ type PFP = {
 };
 
 const origins: Origin[] = [
-  { name: "Airdrop Hunter", tagline: "You were born hunting.", cash: "₦420,000", trait: "Scout", color: "#7c5cff" },
-  { name: "Crypto Developer", tagline: "You speak in commits.", cash: "₦280,000", trait: "Builder", color: "#00a6a6" },
-  { name: "Crypto Analyst", tagline: "You read the room.", cash: "₦360,000", trait: "Alpha", color: "#36a269" },
-  { name: "Degen", tagline: "Risk is your cardio.", cash: "₦190,000", trait: "Degen", color: "#ff6b35" },
+  { name: "Airdrop Hunter", tagline: "You were born hunting.", cash: "$2,800", trait: "Scout", color: "#7c5cff" },
+  { name: "Crypto Developer", tagline: "You speak in commits.", cash: "$1,900", trait: "Builder", color: "#00a6a6" },
+  { name: "Crypto Analyst", tagline: "You read the room.", cash: "$2,400", trait: "Alpha", color: "#36a269" },
+  { name: "Degen", tagline: "Risk is your cardio.", cash: "$1,250", trait: "Degen", color: "#ff6b35" },
   { name: "Community Operator", tagline: "You know everybody.", cash: "₦310,000", trait: "Connector", color: "#e44f8f" },
-  { name: "NFT Native", tagline: "The PFP is the identity.", cash: "₦250,000", trait: "Collector", color: "#d09b25" },
+  { name: "NFT Native", tagline: "The PFP is the identity.", cash: "$1,700", trait: "Collector", color: "#d09b25" },
 ];
 
 const pfps: PFP[] = [
   {
     id: "milady-1",
-    name: "Milady #1",
-    collection: "Milady",
-    image: "https://www.miladymaker.net/milady/1.png",
-    accent: "#ffb6d8",
-  },
-  {
-    id: "punk-3100",
     name: "CryptoPunk #3100",
     collection: "CryptoPunks",
-    image: "https://unpkg.com/cryptopunk-icons@1.1.0/app/assets/punk3100.png",
+    image: "https://files.larvalabs.com/cryptopunks/original/punk3100.png",
     accent: "#79d8ff",
   },
   {
     id: "penguin-420",
-    name: "Pudgy Penguin #420",
-    collection: "Pudgy Penguins",
-    image: "https://ipfs.io/ipfs/QmNf1UsmdGaMbpatQ6toXSkzDpizaGmC9zfunCyoz1enD5/penguin/420.png",
-    accent: "#b8dfff",
+    name: "CryptoPunk #4821",
+    collection: "CryptoPunks",
+    image: "https://files.larvalabs.com/cryptopunks/original/punk4821.png",
+    accent: "#c6d5e0",
   },
   {
     id: "wojak-8",
-    name: "Rare Wojak #8",
-    collection: "Rare Wojak",
-    image: "https://rarewojak.com/images/wojaks/8.png",
-    accent: "#ff8b20",
+    name: "CryptoPunk #2039",
+    collection: "CryptoPunks",
+    image: "https://files.larvalabs.com/cryptopunks/original/punk2039.png",
+    accent: "#f1c27d",
   },
   {
     id: "bonk-9",
-    name: "BONK #9",
-    collection: "BONK",
-    image: "https://i2.seadn.io/matic/29794c3b83f43dc39e2a127167857050/ca3488ab93360ca99fcfb1d4520992/9eca3488ab93360ca99fcfb1d4520992.jpeg?w=1200",
-    accent: "#f5a623",
+    name: "CryptoPunk #1001",
+    collection: "CryptoPunks",
+    image: "https://files.larvalabs.com/cryptopunks/original/punk1001.png",
+    accent: "#d9b26f",
   },
 ];
 
@@ -144,7 +137,7 @@ export default function Home() {
 
         <section className="home-scene">
           <div className="scene-copy">
-            <span className="eyebrow">DAY 01 · 08:42 AM · YABA</span>
+            <span className="eyebrow">DAY 01 · 08:42 AM · GENESIS HUB</span>
             <h1>GM, <span>{name.split(" ")[0]}.</span></h1>
             <p>You just spawned into the timeline. The market is moving. Your phone is buzzing. Someone in the group chat already has alpha.</p>
             <div className="needs">
@@ -153,7 +146,7 @@ export default function Home() {
               <div><span>FUN</span><b><i style={{ width: "91%" }} /></b></div>
             </div>
             <div className="world-actions">
-              <button className="game-button primary-game" onClick={() => alert("The shared city is the next build slice.")}>EXPLORE YABA <b>→</b></button>
+              <button className="game-button primary-game" onClick={() => alert("The shared city is the next build slice.")}>EXPLORE CRYPTO COMMUNITY <b>→</b></button>
               <button className="game-button ghost-game" onClick={() => setScreen("reveal")}>VIEW LIFE</button>
             </div>
           </div>
