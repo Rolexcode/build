@@ -24,9 +24,9 @@ const random = <T,>(items: T[]) => items[Math.floor(Math.random() * items.length
 
 function PFP({ p, large = false }: { p: typeof pfps[number]; large?: boolean }) {
   const [failed, setFailed] = useState(false);
-  const fallback = \`https://api.dicebear.com/10.x/bottts/svg?seed=\${p.seed}&backgroundColor=1a1b18\`;
+  const fallback = `https://api.dicebear.com/10.x/bottts/svg?seed=${p.seed}&backgroundColor=1a1b18`;
   return <div className={large ? "pfp pfp-lg" : "pfp"}>
-    <img src={failed ? fallback : \`https://noun.pics/noun/\${p.id}\`} alt={p.name} onError={() => setFailed(true)} />
+    <img src={failed ? fallback : `https://noun.pics/noun/${p.id}`} alt={p.name} onError={() => setFailed(true)} />
   </div>;
 }
 
@@ -56,7 +56,7 @@ export default function Home() {
   </main>;
 
   return <main className="onboarding">
-    <header><b><i>◆</i> CRYPTO LIFE</b><span>{step === 0 ? "CREATE YOUR LIFE" : \`STEP \${step} / 3\`}</span></header>
+    <header><b><i>◆</i> CRYPTO LIFE</b><span>{step === 0 ? "CREATE YOUR LIFE" : `STEP ${step} / 3`}</span></header>
 
     {step === 0 && <section className="signup">
       <div className="signup-intro"><p className="kicker">WELCOME TO THE TIMELINE</p><h1>Before the GM,<br /><span>who are you?</span></h1><p className="lead">This is your identity in Crypto Life. Your name stays yours. Your starting life does not.</p></div>
