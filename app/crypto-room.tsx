@@ -8,6 +8,9 @@ import type { Group, Mesh, Object3D } from "three";
 import { CanvasTexture, SRGBColorSpace } from "three";
 
 const FURNISHED_FLAT_URL = "https://cdn.3dassets.dev/assets/38818/v1/model.glb";
+// CC0 Quaternius humanoid, bundled by an open-source avatar project.
+// It gives us a real head/body/arms/legs instead of the old RPM + sphere construction.
+const AVATAR_URL = "https://raw.githubusercontent.com/programasweights/avatar/main/public/assets/character.glb";
 
 type RoomStyle = {
   label:string; subtitle:string; wall:string; floor:string; furniture:string; accent:string; luxe:boolean;
@@ -35,16 +38,18 @@ function Orbit({target}:{target:[number,number,number]}) {
     controls.enablePan=false;
     controls.enableDamping=true;
     controls.dampingFactor=0.08;
-    controls.minDistance=7;
-    controls.maxDistance=16;
-    controls.minPolarAngle=0.65;
-    controls.maxPolarAngle=1.45;
-    // Keep the player inside the believable front/side viewing arc of the room.
-    // The back wall is not a playable camera side, so do not let the camera orbit behind it.
+    controls.minDistance=10;
+    controls.maxDistance=20;
+    controls.minPolarAngle=0.72;
+    controls.maxPolarAngle=1.38;
+
+    // Front-of-home only. The player can inspect the room from left/right,
+    // but can never swing around behind the apartment.
     const startAzimuth=Math.atan2(camera.position.x-target[0],camera.position.z-target[2]);
-    const arc=Math.PI*0.42;
+    const arc=Math.PI*0.30;
     controls.minAzimuthAngle=startAzimuth-arc;
     controls.maxAzimuthAngle=startAzimuth+arc;
+
     return ()=>controls.dispose();
   },[camera,gl,target]);
   useFrame(()=>{});
@@ -75,27 +80,25 @@ function PfpTexture({image,onReady}:{image:string;onReady:(texture:CanvasTexture
   return null;
 }
 
-function IdentityBadge({texture}:{texture:CanvasTexture}) {
-  const ref = useRef<Group>(null);
-  const { camera } = useThree();
+function PfpFace({texture}:{texture:CanvasTexture}) {
+  const ref=useRef<Group>(null);
+  const {camera}=useThree();
 
-  useFrame(() => {
-    if (ref.current) ref.current.quaternion.copy(camera.quaternion);
+  useFrame(()=>{
+    // The identity follows the camera subtly, so the player's PFP remains readable
+    // while the actual 3D head underneath stays visible as a real head.
+    if(ref.current) ref.current.quaternion.copy(camera.quaternion);
   });
 
   return (
-    <group ref={ref} position={[0,2.02,0.03]}>
-      <mesh position={[0,0,-0.018]} castShadow>
-        <planeGeometry args={[0.58,0.58]}/>
-        <meshBasicMaterial color="#1d241c"/>
+    <group ref={ref} position={[0,2.02,0.18]}>
+      <mesh position={[0,0,-0.012]}>
+        <planeGeometry args={[0.46,0.46]}/>
+        <meshStandardMaterial color="#172018" roughness={0.8}/>
       </mesh>
-      <mesh position={[0,0,0]}>
-        <planeGeometry args={[0.49,0.49]}/>
+      <mesh>
+        <planeGeometry args={[0.39,0.39]}/>
         <meshBasicMaterial map={texture} transparent/>
-      </mesh>
-      <mesh position={[0,-0.31,0.01]}>
-        <planeGeometry args={[0.32,0.025]}/>
-        <meshBasicMaterial color="#8fb24d"/>
       </mesh>
     </group>
   );
@@ -109,37 +112,30 @@ function RealAvatar({accent,pfpImage}:{accent:string;pfpImage?:string}) {
   useEffect(()=>{
     let mounted=true;
     new GLTFLoader().load(
-      "https://readyplayerme.github.io/web-3d-viewer/male.glb",
+      AVATAR_URL,
       gltf=>{
         if(!mounted)return;
-
         gltf.scene.traverse((node:Object3D)=>{
           const mesh=node as Mesh;
           if(!("isMesh" in mesh)) return;
-          const n=(node.name||"").toLowerCase();
+          mesh.castShadow=true;
+          mesh.receiveShadow=true;
 
-          // Keep the actual RPM head, hair, eyes and clothing.
-          // The PFP is now a player identity marker above the character,
-          // not a fake spherical head.
-          if(n.includes("hair") || n.includes("eye") || n.includes("teeth")){
-            mesh.visible=true;
-          }
-
-          const material:any = mesh.material;
-          const materials = Array.isArray(material) ? material : [material];
+          const material:any=mesh.material;
+          const materials=Array.isArray(material)?material:[material];
           for(const mat of materials){
             if(!mat?.color) continue;
-            if(n.includes("body") || n.includes("skin") || n.includes("head") || n.includes("face")){
-              mat.color.set("#b98263");
-              mat.roughness = 0.78;
-            }
-            if(n.includes("shirt") || n.includes("top") || n.includes("outfit") || n.includes("hoodie")){
+            // The base model is intentionally neutral; clothing carries the
+            // player's generated accent without flattening the character.
+            const n=(node.name||"").toLowerCase();
+            if(n.includes("shirt") || n.includes("top") || n.includes("torso") || n.includes("body")){
               mat.color.set(accent);
-              mat.roughness = 0.68;
+              mat.roughness=0.64;
+            } else {
+              mat.roughness=0.76;
             }
           }
         });
-
         setModel(gltf.scene);
       },
       undefined,
@@ -150,23 +146,24 @@ function RealAvatar({accent,pfpImage}:{accent:string;pfpImage?:string}) {
 
   useFrame(({clock})=>{
     if(ref.current){
-      ref.current.position.y = Math.sin(clock.elapsedTime*1.35)*0.006;
-      ref.current.rotation.y = Math.sin(clock.elapsedTime*0.45)*0.025;
+      ref.current.position.y=Math.sin(clock.elapsedTime*1.35)*0.004;
+      ref.current.rotation.y=Math.sin(clock.elapsedTime*0.45)*0.018;
     }
   });
 
   return (
-    <group ref={ref} position={[-4.05,0,0.45]} scale={0.74}>
+    <group ref={ref} position={[-4.65,0,-1.55]} scale={0.92}>
       {pfpImage && <PfpTexture image={pfpImage} onReady={setPfpTexture}/>}
       {model ? <primitive object={model.clone(true)} /> : null}
-      {pfpTexture && <IdentityBadge texture={pfpTexture}/>}
+      {pfpTexture && <PfpFace texture={pfpTexture}/>}
       <mesh position={[0,0.025,0]} rotation={[-Math.PI/2,0,0]}>
-        <circleGeometry args={[0.43,32]}/>
-        <meshBasicMaterial color="#1c211b" transparent opacity={0.16}/>
+        <circleGeometry args={[0.42,32]}/>
+        <meshBasicMaterial color="#1c211b" transparent opacity={0.15}/>
       </mesh>
     </group>
   );
 }
+
 function FurnishedApartment({style}:{style:RoomStyle}) {
   const [model,setModel]=useState<any>(null);
 
@@ -184,8 +181,8 @@ function FurnishedApartment({style}:{style:RoomStyle}) {
   if(!model) {
     return (
       <>
-        <Box position={[0,-0.12,0]} size={[10,0.22,7]} color={style.floor}/>
-        <Box position={[0,3.0,-3]} size={[10,6,0.16]} color={style.wall}/>
+        <Box position={[-5,-0.12,-2]} size={[14,0.22,6]} color={style.floor}/>
+        <Box position={[-5,3,-5]} size={[14,6,0.16]} color={style.wall}/>
       </>
     );
   }
@@ -199,11 +196,16 @@ function FurnishedApartment({style}:{style:RoomStyle}) {
     }
   });
 
-  // The asset is already a staged, front-open flat. Keep it low and centered
-  // so the player reads as a person inside a real home, not a model floating in a box.
-  return <primitive object={apartment} position={[-5.03,0,-2.05]} scale={[1.18,1,1.08]} />;
+  // Give the furnished flat breathing room. The original scene was too dense
+  // at the old scale, which also pushed the player toward the front edge.
+  return (
+    <primitive
+      object={apartment}
+      position={[-6.15,0,-2.35]}
+      scale={[1.42,1,1.30]}
+    />
+  );
 }
-
 
 type HomeAction = "sleep" | "hygiene" | "cook" | "work" | "watch";
 
@@ -217,14 +219,14 @@ const homeActions: Record<HomeAction,{label:string;title:string;detail:string;ne
 
 function HomeHotspots({onAction}:{onAction:(action:HomeAction)=>void}) {
   const spots:{action:HomeAction;position:[number,number,number];size:[number,number]}[] = [
-    {action:"sleep",position:[-6.9,0.72,-2.55],size:[1.7,0.9]},
-    {action:"hygiene",position:[-2.25,0.78,-2.35],size:[1.15,1]},
-    {action:"cook",position:[-8.15,0.78,-0.55],size:[1.65,1]},
-    {action:"work",position:[-2.95,0.82,-0.65],size:[1.5,1]},
-    {action:"watch",position:[-5.05,0.82,-0.25],size:[1.7,1]},
+    {action:"sleep",position:[-8.8,0.72,-2.85],size:[2.2,1]},
+    {action:"hygiene",position:[-2.65,0.78,-2.8],size:[1.45,1.1]},
+    {action:"cook",position:[-10.45,0.78,-0.7],size:[2.1,1.1]},
+    {action:"work",position:[-3.55,0.82,-0.75],size:[1.9,1.1]},
+    {action:"watch",position:[-6.35,0.82,-0.45],size:[2.1,1.1]},
   ];
   return <>
-    {spots.map(({action,position,size}) => (
+    {spots.map(({action,position,size})=>(
       <mesh key={action} position={position} onClick={(e)=>{e.stopPropagation();onAction(action);}}>
         <planeGeometry args={size}/>
         <meshBasicMaterial transparent opacity={0} depthWrite={false}/>
@@ -234,64 +236,58 @@ function HomeHotspots({onAction}:{onAction:(action:HomeAction)=>void}) {
 }
 
 function Scene({style,pfpImage,originName,cash,onAction}:{style?:RoomStyle;pfpImage?:string;originName?:string;cash?:string;onAction?:(action:HomeAction)=>void}) {
-  const sceneStyle:RoomStyle = style ?? { label:"STARTER APARTMENT", subtitle:"your first home", wall:"#eee7dc", floor:"#c8b8a6", furniture:"#4d5149", accent:"#d98b7b", luxe:false };
+  const sceneStyle:RoomStyle=style ?? {label:"STARTER APARTMENT",subtitle:"your first home",wall:"#eee7dc",floor:"#c8b8a6",furniture:"#4d5149",accent:"#d98b7b",luxe:false};
+  const target:[number,number,number]=[-5.3,1.02,-1.75];
+
   return <>
     <ambientLight intensity={1.05}/>
     <directionalLight position={[4,8,7]} intensity={2.7} castShadow shadow-mapSize={[1024,1024]}/>
     <hemisphereLight args={["#fffdf5","#87957e",1.15]}/>
-    <pointLight position={[-2,3.2,2]} intensity={7} distance={10} color={sceneStyle.luxe?"#f8dca2":"#d8f0df"}/>
+    <pointLight position={[-4,3.2,2]} intensity={7} distance={12} color={sceneStyle.luxe?"#f8dca2":"#d8f0df"}/>
     <FurnishedApartment style={sceneStyle}/>
     <RealAvatar accent={sceneStyle.accent} pfpImage={pfpImage}/>
-    {onAction && <HomeHotspots onAction={onAction}/>} 
-    <Orbit target={[0,1.05,0]}/>
+    {onAction && <HomeHotspots onAction={onAction}/>}
+    <Orbit target={target}/>
   </>;
 }
 
-
 export default function CryptoRoom(props:{style?:RoomStyle;pfpImage?:string;originName?:string;cash?:string}) {
-  const [active,setActive] = useState<HomeAction|null>(null);
-  const [toast,setToast] = useState<string|null>(null);
+  const [active,setActive]=useState<HomeAction|null>(null);
+  const [toast,setToast]=useState<string|null>(null);
+  const action=active?homeActions[active]:null;
 
-  const action = active ? homeActions[active] : null;
-
-  const perform = () => {
-    if(!action) return;
-    setToast(
-      action.need === "CASH"
-        ? "+$120 earned · desk session complete"
-        : `+${action.amount} ${action.need.toLowerCase()} restored`
-    );
+  const perform=()=>{
+    if(!action)return;
+    setToast(action.need==="CASH"?"+$120 earned · desk session complete":`+${action.amount} ${action.need.toLowerCase()} restored`);
     setActive(null);
     window.setTimeout(()=>setToast(null),1800);
   };
 
   return (
     <div className="crypto-room-wrap">
-      <Canvas camera={{position:[8.8,5.6,10.8],fov:40}} shadows>
+      <Canvas camera={{position:[5.0,5.5,12.5],fov:43}} shadows>
         <Scene {...props} onAction={setActive}/>
       </Canvas>
 
       <div className="home-hint">TAP THE HOME OBJECTS · DRAG TO LOOK AROUND</div>
 
       <div className="home-interactions">
-        {(["sleep","hygiene","cook","work","watch"] as HomeAction[]).map(key => {
+        {(["sleep","hygiene","cook","work","watch"] as HomeAction[]).map(key=>{
           const item=homeActions[key];
-          return (
-            <button key={key} className={`home-action ${active===key ? "selected" : ""}`} onClick={()=>setActive(key)}>
-              <span>{item.label}</span>
-              <strong>{item.title}</strong>
-            </button>
-          );
+          return <button key={key} className={`home-action ${active===key?"selected":""}`} onClick={()=>setActive(key)}>
+            <span>{item.label}</span>
+            <strong>{item.title}</strong>
+          </button>;
         })}
       </div>
 
-      {active && action && (
+      {active&&action&&(
         <div className="home-action-modal">
           <div className="home-action-card">
             <span className="eyebrow">HOME · {action.need}</span>
             <h3>{action.title}</h3>
             <p>{action.detail}</p>
-            <div className="home-action-meta">RESTORE {action.amount}{action.need==="CASH" ? " USD" : "%"}</div>
+            <div className="home-action-meta">RESTORE {action.amount}{action.need==="CASH"?" USD":"%"}</div>
             <div className="home-action-buttons">
               <button onClick={perform}>DO IT →</button>
               <button onClick={()=>setActive(null)}>CANCEL</button>
@@ -300,8 +296,7 @@ export default function CryptoRoom(props:{style?:RoomStyle;pfpImage?:string;orig
         </div>
       )}
 
-      {toast && <div className="home-toast">{toast}</div>}
+      {toast&&<div className="home-toast">{toast}</div>}
     </div>
   );
 }
-
