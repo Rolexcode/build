@@ -40,7 +40,7 @@ function Orbit({target}:{target:[number,number,number]}) {
     // Keep the player inside the believable front/side viewing arc of the room.
     // The back wall is not a playable camera side, so do not let the camera orbit behind it.
     const startAzimuth=Math.atan2(camera.position.x-target[0],camera.position.z-target[2]);
-    const arc=Math.PI*0.53;
+    const arc=Math.PI*0.42;
     controls.minAzimuthAngle=startAzimuth-arc;
     controls.maxAzimuthAngle=startAzimuth+arc;
     return ()=>controls.dispose();
