@@ -163,14 +163,14 @@ function FurnishedApartment({style}:{style:RoomStyle}) {
   return <primitive object={apartment} position={[-5.03,0,-2.05]} />;
 }
 
-function Scene({style,pfpImage}:{style:RoomStyle;pfpImage?:string}) {
+function Scene({style,pfpImage,originName,cash}:{style?:RoomStyle;pfpImage?:string;originName?:string;cash?:string}) {\n  const sceneStyle = style ?? { accent:"#d98b7b", floor:"#c8b8a6", wall:"#eee7dc", luxe:false };
   return <>
     <ambientLight intensity={1.05}/>
     <directionalLight position={[4,8,7]} intensity={2.7} castShadow shadow-mapSize={[1024,1024]}/>
     <hemisphereLight args={["#fffdf5","#87957e",1.15]}/>
-    <pointLight position={[-2,3.2,2]} intensity={7} distance={10} color={style.luxe?"#f8dca2":"#d8f0df"}/>
-    <FurnishedApartment style={style}/>
-    <RealAvatar accent={style.accent} pfpImage={pfpImage}/>
+    <pointLight position={[-2,3.2,2]} intensity={7} distance={10} color={sceneStyle.luxe?"#f8dca2":"#d8f0df"}/>
+    <FurnishedApartment style={sceneStyle}/>
+    <RealAvatar accent={sceneStyle.accent} pfpImage={pfpImage}/>
     <Orbit target={[0,1.05,0]}/>
   </>;
 }
