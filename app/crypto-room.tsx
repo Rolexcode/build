@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import type { Bone, Group, Mesh, Object3D } from "three";
-import { CanvasTexture, SRGBColorSpace } from "three";
+import { } from "three";
 
 const FURNISHED_FLAT_URL = "https://cdn.3dassets.dev/assets/38818/v1/model.glb";
 // CC0 Quaternius humanoid, bundled by an open-source avatar project.
@@ -56,7 +56,7 @@ function Orbit({target}:{target:[number,number,number]}) {
   return null;
 }
 
-function RealAvatar({accent,pfpImage}:{accent:string;pfpImage?:string}) {
+function RealAvatar({accent}:{accent:string}) {
   const ref=useRef<Group>(null);
   const [model,setModel]=useState<any>(null);
   const bones=useRef<Record<string,Bone>>({});
