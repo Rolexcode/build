@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import type { Group } from "three";
-import { TextureLoader, SpriteMaterial, CanvasTexture, SRGBColorSpace } from "three";
+import { SpriteMaterial, CanvasTexture, SRGBColorSpace } from "three";
 
 type RoomStyle = {
   label:string; subtitle:string; wall:string; floor:string; furniture:string; accent:string; luxe:boolean;
