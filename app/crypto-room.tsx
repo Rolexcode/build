@@ -4,7 +4,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useRef, useState } from "react";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import type { Group, Mesh, Object3D } from "three";
+import type { Bone, Group, Mesh, Object3D } from "three";
 import { CanvasTexture, SRGBColorSpace } from "three";
 
 const FURNISHED_FLAT_URL = "https://cdn.3dassets.dev/assets/38818/v1/model.glb";
@@ -85,19 +85,15 @@ function PfpFace({texture}:{texture:CanvasTexture}) {
   const {camera}=useThree();
 
   useFrame(()=>{
-    // The identity follows the camera subtly, so the player's PFP remains readable
-    // while the actual 3D head underneath stays visible as a real head.
+    // The PFP is an identity badge, not a replacement body. Keep it small,
+    // circular and attached to the head so the 3D character remains dominant.
     if(ref.current) ref.current.quaternion.copy(camera.quaternion);
   });
 
   return (
-    <group ref={ref} position={[0,2.02,0.18]}>
-      <mesh position={[0,0,-0.012]}>
-        <planeGeometry args={[0.46,0.46]}/>
-        <meshStandardMaterial color="#172018" roughness={0.8}/>
-      </mesh>
+    <group ref={ref} position={[0,2.04,0.23]}>
       <mesh>
-        <planeGeometry args={[0.39,0.39]}/>
+        <circleGeometry args={[0.18,48]}/>
         <meshBasicMaterial map={texture} transparent/>
       </mesh>
     </group>
@@ -108,6 +104,8 @@ function RealAvatar({accent,pfpImage}:{accent:string;pfpImage?:string}) {
   const ref=useRef<Group>(null);
   const [model,setModel]=useState<any>(null);
   const [pfpTexture,setPfpTexture]=useState<CanvasTexture|null>(null);
+  const bones=useRef<Record<string,Bone>>({});
+  const baseRotations=useRef<Record<string,{x:number;y:number;z:number}>>({});
 
   useEffect(()=>{
     let mounted=true;
@@ -120,6 +118,12 @@ function RealAvatar({accent,pfpImage}:{accent:string;pfpImage?:string}) {
           if(!("isMesh" in mesh)) return;
           mesh.castShadow=true;
           mesh.receiveShadow=true;
+
+          if((node as any).isBone){
+            const key=node.name.toLowerCase().replace(/[^a-z0-9]/g,"");
+            bones.current[key]=node as Bone;
+            baseRotations.current[key]={x:node.rotation.x,y:node.rotation.y,z:node.rotation.z};
+          }
 
           const material:any=mesh.material;
           const materials=Array.isArray(material)?material:[material];
@@ -145,10 +149,42 @@ function RealAvatar({accent,pfpImage}:{accent:string;pfpImage?:string}) {
   },[accent]);
 
   useFrame(({clock})=>{
+    const t=clock.elapsedTime;
+
     if(ref.current){
-      ref.current.position.y=Math.sin(clock.elapsedTime*1.35)*0.004;
-      ref.current.rotation.y=Math.sin(clock.elapsedTime*0.45)*0.018;
+      // Small, continuous motion is what separates a placed model from a
+      // character: breathing, weight shift, head movement and relaxed arms.
+      ref.current.position.y=Math.sin(t*1.35)*0.012;
+      ref.current.rotation.y=Math.sin(t*0.45)*0.026;
     }
+
+    const get=(...names:string[])=>{
+      for(const name of names){
+        const bone=bones.current[name];
+        if(bone) return {bone,base:baseRotations.current[name]};
+      }
+      return null;
+    };
+    const set=(hit:{bone:Bone;base:{x:number;y:number;z:number}}|null, x=0,y=0,z=0)=>{
+      if(!hit) return;
+      hit.bone.rotation.x=hit.base.x+x;
+      hit.bone.rotation.y=hit.base.y+y;
+      hit.bone.rotation.z=hit.base.z+z;
+    };
+
+    const spine=get("spine","spine1","chest");
+    const head=get("head","neck");
+    const leftArm=get("leftupperarm","leftarm");
+    const rightArm=get("rightupperarm","rightarm");
+    const leftForearm=get("leftforearm","leftlowerarm");
+    const rightForearm=get("rightforearm","rightlowerarm");
+
+    set(spine, Math.sin(t*1.35)*0.012, Math.sin(t*0.72)*0.012, 0);
+    set(head, Math.sin(t*0.52)*0.045, Math.sin(t*0.34)*0.06, 0);
+    set(leftArm, 0, 0, Math.sin(t*1.35)*0.018);
+    set(rightArm, 0, 0, -Math.sin(t*1.35)*0.018);
+    set(leftForearm, Math.sin(t*1.35)*0.018, 0, 0);
+    set(rightForearm, -Math.sin(t*1.35)*0.018, 0, 0);
   });
 
   return (
