@@ -116,10 +116,12 @@ function RealAvatar({accent,pfpImage}:{accent:string;pfpImage?:string}) {
         </mesh>
       </>}
       {pfpTexture && (
-        <mesh position={[0,1.73,0]} castShadow>
-          <sphereGeometry args={[0.34,32,24]}/>
-          <meshStandardMaterial map={pfpTexture} roughness={0.55} metalness={0.02}/>
-        </mesh>
+        <group position={[0,1.74,0.02]}>
+          <mesh scale={[0.82,1,0.62]} castShadow>
+            <sphereGeometry args={[0.34,48,32]}/>
+            <meshStandardMaterial map={pfpTexture} roughness={0.7} metalness={0.01}/>
+          </mesh>
+        </group>
       )}
     </group>
   );
