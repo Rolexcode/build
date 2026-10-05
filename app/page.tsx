@@ -15,72 +15,80 @@ type Origin = {
 
 type PFP = {
   id: string;
-  name: string;
-  collection: string;
+  name: "Milady" | "CryptoPunk" | "Wojak" | "Pudgy Penguin";
+  category: "MILADY" | "CRYPTOPUNK" | "WOJAK" | "PUDGY PENGUIN";
   image: string;
   accent: string;
 };
 
-const origins: Origin[] = [
-  { name: "Airdrop Hunter", tagline: "You were born hunting.", cash: "$2,800", trait: "Scout", color: "#7c5cff" },
-  { name: "Crypto Developer", tagline: "You speak in commits.", cash: "$1,900", trait: "Builder", color: "#00a6a6" },
-  { name: "Crypto Analyst", tagline: "You read the room.", cash: "$2,400", trait: "Alpha", color: "#36a269" },
-  { name: "Degen", tagline: "Risk is your cardio.", cash: "$1,250", trait: "Degen", color: "#ff6b35" },
-  { name: "Web3 Jobber", tagline: "You mod, shill, host, grind.", cash: "$2,100", trait: "Operator", color: "#e44f8f" },
-  { name: "NFT Native", tagline: "The PFP is the identity.", cash: "$1,700", trait: "Collector", color: "#d09b25" },
-  { name: "Crypto Guru", tagline: "You caught the cycle early.", cash: "$1,250,000", trait: "Whale", color: "#d5ad47" },
+const pfps: PFP[] = [
+  // Four identity families. Each family contains many individual identities;
+  // onboarding chooses a family and then a specific PFP inside it.
+  ...["gyaru","hypebeast"].map((variant, i) => ({
+    id: `milady-${variant}`,
+    name: "Milady" as const,
+    category: "MILADY" as const,
+    image: `https://www.miladymaker.net/images/${variant}.png`,
+    accent: i ? "#9aa87c" : "#d98b7b",
+  })),
+  ...[3100,7804,5822,7252,2338,6965,8348,9416,7523,7807].map((id, i) => ({
+    id: `punk-${id}`,
+    name: "CryptoPunk" as const,
+    category: "CRYPTOPUNK" as const,
+    image: `https://unpkg.com/cryptopunk-icons@1.1.0/files/app/assets/punk${String(id).padStart(4,"0")}.png`,
+    accent: ["#79d8ff","#8ec5ff","#b7a1ff","#78e0c1","#f1b36d"][i % 5],
+  })),
+  ...[8,27,69,103,211,420,777,1024,2048,3141].map((id, i) => ({
+    id: `wojak-${id}`,
+    name: "Wojak" as const,
+    category: "WOJAK" as const,
+    image: `https://rarewojak.com/images/wojaks/${id}.png`,
+    accent: ["#ff7a24","#f09a3e","#e96b57","#ff9b42","#d86a42"][i % 5],
+  })),
+  ...[1219,1,7,42,69,100,420,777,1337,2024].map((id, i) => ({
+    id: `pudgy-${id}`,
+    name: "Pudgy Penguin" as const,
+    category: "PUDGY PENGUIN" as const,
+    image: `https://api.pudgypenguins.io/penguin/${id}`,
+    accent: ["#ef6f86","#7eb8df","#f1b36d","#8ccfbd","#b9a0e8"][i % 5],
+  })),
 ];
 
-const pfps: PFP[] = [
-  ...Array.from({ length: 12 }, (_, i) => ({
-    id: `punk-${i}`,
-    name: `CryptoPunk #${i}`,
-    collection: "CryptoPunks",
-    image: `https://files.larvalabs.com/cryptopunks/original/punk${i}.png`,
-    accent: "#79d8ff",
-  })),
-  ...[
-    ["gyaru", "Gyaru Milady"], ["prep", "Prep Milady"], ["lolita", "Lolita Milady"],
-    ["hypebeast", "Hypebeast Milady"], ["harajuku", "Harajuku Milady"],
-  ].map(([style, name]) => ({
-    id: `milady-${style}`,
-    name,
-    collection: "Milady Maker",
-    image: `https://www.miladymaker.net/images/${style}.png`,
-    accent: "#d98b7b",
-  })),
-  ...Array.from({ length: 12 }, (_, i) => ({
-    id: `wojak-${i + 1}`,
-    name: `Rare Wojak #${i + 1}`,
-    collection: "Rare Wojak",
-    image: `https://rarewojak.com/images/wojaks/${i + 1}.png`,
-    accent: "#ff7a24",
-  })),
-  ...Array.from({ length: 12 }, (_, i) => ({
-    id: `pudgy-${1219 + i}`,
-    name: `Pudgy Penguin #${1219 + i}`,
-    collection: "Pudgy Penguins",
-    image: `https://f8n-production-collection-assets.imgix.net/0xBd3531dA5CF5857e7CfAA92426877b022e612cf8/${1219 + i}/nft.png?auto=format%2Ccompress&cs=srgb&fnd_key=v1&h=1200&q=70&w=1200`,
-    accent: "#ef6f86",
-  })),
-];
+
 
 const pick = <T,>(items: T[]) => items[Math.floor(Math.random() * items.length)];
 
 function PfpImage({ pfp, className = "" }: { pfp: PFP; className?: string }) {
+  const [src, setSrc] = useState<string | null>(null);
   const [broken, setBroken] = useState(false);
-  return broken ? (
-    <div className={`pfp-fallback ${className}`} style={{ background: pfp.accent }}>
-      <span>{pfp.collection.slice(0, 2).toUpperCase()}</span>
-    </div>
-  ) : (
-    <img
-      className={`pfp-image ${className}`}
-      src={pfp.image}
-      alt={pfp.name}
-      onError={() => setBroken(true)}
-    />
-  );
+
+  useEffect(() => {
+    let alive = true;
+    if (!pfp.image.includes("api.pudgypenguins.io")) {
+      setSrc(pfp.image);
+      return;
+    }
+    fetch(pfp.image)
+      .then(r => r.json())
+      .then(data => {
+        if (alive) setSrc(data.image || data.image_url || data.animation_url || null);
+      })
+      .catch(() => alive && setBroken(true));
+    return () => { alive = false; };
+  }, [pfp.image]);
+
+  if (broken || !src) {
+    return <div className={`pfp-fallback ${className}`} style={{ background: pfp.accent }}>
+      <span>{pfp.category.slice(0, 2)}</span>
+    </div>;
+  }
+
+  return <img
+    className={`pfp-image ${className}`}
+    src={src}
+    alt={pfp.name}
+    onError={() => setBroken(true)}
+  />;
 }
 
 export default function Home() {
