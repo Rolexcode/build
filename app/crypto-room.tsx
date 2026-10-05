@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import type { Group } from "three";
+import { TextureLoader, SpriteMaterial, CanvasTexture, SRGBColorSpace } from "three";
 
 type RoomStyle = {
   label:string; subtitle:string; wall:string; floor:string; furniture:string; accent:string; luxe:boolean;
@@ -36,13 +37,19 @@ function Orbit({target}:{target:[number,number,number]}) {
     controls.maxDistance=16;
     controls.minPolarAngle=0.65;
     controls.maxPolarAngle=1.45;
+    // Keep the player inside the believable front/side viewing arc of the room.
+    // The back wall is not a playable camera side, so do not let the camera orbit behind it.
+    const startAzimuth=Math.atan2(camera.position.x-target[0],camera.position.z-target[2]);
+    const arc=Math.PI*0.53;
+    controls.minAzimuthAngle=startAzimuth-arc;
+    controls.maxAzimuthAngle=startAzimuth+arc;
     return ()=>controls.dispose();
   },[camera,gl,target]);
   useFrame(()=>{});
   return null;
 }
 
-function RealAvatar({accent}:{accent:string}) {
+function RealAvatar({accent,pfpImage}:{accent:string;pfpImage?:string}) {
   const ref=useRef<Group>(null);
   const [model,setModel]=useState<any>(null);
   useEffect(()=>{
@@ -58,8 +65,11 @@ function RealAvatar({accent}:{accent:string}) {
   useFrame(({clock})=>{
     if(ref.current) ref.current.position.y=0.02+Math.sin(clock.elapsedTime*1.7)*0.015;
   });
-  return <group ref={ref} position={[0.45,0,0.25]} scale={0.92}>
-    {model ? <primitive object={model.clone(true)} /> : <>
+  return <group ref={ref} position={[0.45,0,0.25]} scale={0.78}>
+    {model ? <>
+      <primitive object={model.clone(true)} />
+      {pfpImage && <PfpHead image={pfpImage} />}
+    </> : <>
       <mesh position={[0,0.9,0]}><capsuleGeometry args={[0.3,1.05,8,16]}/><meshStandardMaterial color={accent}/></mesh>
       <mesh position={[0,1.75,0]}><sphereGeometry args={[0.38,24,18]}/><meshStandardMaterial color="#7c5544"/></mesh>
     </>}
@@ -104,7 +114,33 @@ function Plant({position}:{position:[number,number,number]}) {
   return <group position={position}><mesh position={[0,0.35,0]} castShadow><cylinderGeometry args={[0.34,0.26,0.65,18]}/><meshStandardMaterial color="#b86f4b"/></mesh><mesh position={[0,1.15,0]} castShadow><sphereGeometry args={[0.62,12,10]}/><meshStandardMaterial color="#527a4f"/></mesh></group>;
 }
 
-function Scene({style}:{style:RoomStyle}) {
+function PfpHead({image}:{image:string}) {
+  const [texture,setTexture]=useState<CanvasTexture|null>(null);
+  useEffect(()=>{
+    let alive=true;
+    const img=new Image();
+    img.crossOrigin="anonymous";
+    img.onload=()=>{
+      if(!alive)return;
+      const canvas=document.createElement("canvas");
+      canvas.width=512; canvas.height=512;
+      const ctx=canvas.getContext("2d");
+      if(!ctx)return;
+      ctx.clearRect(0,0,512,512);
+      ctx.beginPath(); ctx.arc(256,256,240,0,Math.PI*2); ctx.closePath(); ctx.clip();
+      ctx.drawImage(img,0,0,512,512);
+      const t=new CanvasTexture(canvas); t.colorSpace=SRGBColorSpace; t.needsUpdate=true;
+      setTexture(t);
+    };
+    img.src=image;
+    return ()=>{alive=false};
+  },[image]);
+  if(!texture)return null;
+  const material=new SpriteMaterial({map:texture,transparent:true,depthTest:true,depthWrite:false});
+  return <sprite material={material} position={[0,2.05,0.03]} scale={[0.62,0.62,0.62]} />;
+}
+
+function Scene({style,pfpImage}:{style:RoomStyle;pfpImage?:string}) {
   return <>
     <ambientLight intensity={1.25}/>
     <directionalLight position={[5,9,6]} intensity={2.4} castShadow/>
@@ -113,19 +149,19 @@ function Scene({style}:{style:RoomStyle}) {
     <Box position={[0,3.4,-3.05]} size={[12,7,0.16]} color={style.wall}/>
     <Box position={[-6,3.4,0]} size={[0.16,7,8]} color={style.wall}/>
     <Window style={style}/><Sofa style={style}/><CoffeeTable style={style}/><Desk style={style}/><Plant position={[-4.4,0,-1.8]}/>
-    <RealAvatar accent={style.accent}/>
+    <RealAvatar accent={style.accent} pfpImage={pfpImage}/>
     {style.luxe && <Box position={[4.3,2.35,-2.8]} size={[2.8,1.8,0.12]} color="#151b18"/>}
     <Orbit target={[0,1.15,0]}/>
   </>;
 }
 
-export default function CryptoRoom({originName,cash}:{originName:string;cash:string}) {
+export default function CryptoRoom({originName,cash,pfpImage}:{originName:string;cash:string;pfpImage?:string}) {
   const style=styles[originName]??styles["Web3 Jobber"];
   return <div className="three-room-canvas">
     <Canvas shadows dpr={[1,1.5]} camera={{position:[10.8,7.2,12.8],fov:42}} fallback={<div className="three-fallback">3D world unavailable on this device.</div>}>
-      <color attach="background" args={[style.luxe?"#d8d4c6":"#d7e1d3"]}/><Scene style={style}/>
+      <color attach="background" args={[style.luxe?"#d8d4c6":"#d7e1d3"]}/><Scene style={style} pfpImage={pfpImage}/>
     </Canvas>
-    <div className="room-3d-hint">DRAG TO LOOK AROUND · 360°</div>
+    <div className="room-3d-hint">DRAG TO LOOK AROUND · FRONT ARC</div>
     <div className="room-style-chip"><span>{style.label}</span><strong>{cash}</strong></div>
     <div className="room-style-copy"><b>{style.subtitle}</b><small>YOUR HOME · 3D WORLD</small></div>
   </div>;
