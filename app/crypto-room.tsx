@@ -7,6 +7,8 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import type { Group, Mesh, Object3D } from "three";
 import { CanvasTexture, SRGBColorSpace } from "three";
 
+const FURNISHED_FLAT_URL = "https://cdn.3dassets.dev/assets/38818/v1/model.glb";
+
 type RoomStyle = {
   label:string; subtitle:string; wall:string; floor:string; furniture:string; accent:string; luxe:boolean;
 };
@@ -121,5 +123,55 @@ function RealAvatar({accent,pfpImage}:{accent:string;pfpImage?:string}) {
       )}
     </group>
   );
+}
+function FurnishedApartment({style}:{style:RoomStyle}) {
+  const [model,setModel]=useState<any>(null);
+
+  useEffect(()=>{
+    let mounted=true;
+    new GLTFLoader().load(
+      FURNISHED_FLAT_URL,
+      gltf=>{ if(mounted) setModel(gltf.scene); },
+      undefined,
+      ()=>{}
+    );
+    return ()=>{ mounted=false; };
+  },[]);
+
+  if(!model) {
+    return (
+      <>
+        <Box position={[0,-0.12,0]} size={[10,0.22,7]} color={style.floor}/>
+        <Box position={[0,3.0,-3]} size={[10,6,0.16]} color={style.wall}/>
+      </>
+    );
+  }
+
+  const apartment=model.clone(true);
+  apartment.traverse((node:Object3D)=>{
+    const mesh=node as Mesh;
+    if("isMesh" in mesh){
+      mesh.castShadow=true;
+      mesh.receiveShadow=true;
+    }
+  });
+
+  // The asset is already a staged, front-open flat. Keep it low and centered
+  // so the player reads as a person inside a real home, not a model floating in a box.
+  return <primitive object={apartment} position={[-5.03,0,-2.05]} />;
+}
+
+function Scene({style,pfpImage}:{style:RoomStyle;pfpImage?:string}) {
+  return <>
+    <ambientLight intensity={1.05}/>
+    <directionalLight position={[4,8,7]} intensity={2.7} castShadow shadow-mapSize={[1024,1024]}/>
+    <hemisphereLight args={["#fffdf5","#87957e",1.15]}/>
+    <pointLight position={[-2,3.2,2]} intensity={7} distance={10} color={style.luxe?"#f8dca2":"#d8f0df"}/>
+
+    <FurnishedApartment style={style}/>
+    <RealAvatar accent={style.accent} pfpImage={pfpImage}/>
+
+    <Orbit target={[0,1.05,0]}/>
+  </>;
 }
 
