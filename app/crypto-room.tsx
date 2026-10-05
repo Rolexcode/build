@@ -9,7 +9,7 @@ import type { Bone, Group, Mesh, Object3D } from "three";
 const FURNISHED_FLAT_URL = "https://cdn.3dassets.dev/assets/38818/v1/model.glb";
 // CC0 Quaternius humanoid, bundled by an open-source avatar project.
 // It gives us a real head/body/arms/legs instead of the old RPM + sphere construction.
-const AVATAR_URL = "https://raw.githubusercontent.com/programasweights/avatar/main/public/assets/character.glb";
+const AVATAR_URL = "https://threejs.org/examples/models/gltf/Xbot.glb";
 
 type RoomStyle = {
   label:string; subtitle:string; wall:string; floor:string; furniture:string; accent:string; luxe:boolean;
