@@ -89,7 +89,8 @@ function PfpImage({ pfp, className = "" }: { pfp: PFP; className?: string }) {
 
 export default function Home() {
   const [hydrated, setHydrated] = useState(false);
-  const [screen, setScreen] = useState<"signup" | "origin" | "pfp" | "world">("signup");
+  const [screen, setScreen] = useState<"signup" | "origin" | "pfp" | "world" | "map">("signup");
+  const [selectedDistrict, setSelectedDistrict] = useState("Genesis Hub");
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [origin, setOrigin] = useState<Origin | null>(null);
@@ -117,6 +118,52 @@ export default function Home() {
 
   if (!hydrated) return <main className="boot"><div className="boot-mark">◆</div></main>;
 
+  if (screen === "map" && origin && pfp) {
+    const districts = [
+      {name:"Genesis Hub",type:"STARTING DISTRICT",desc:"Your home base. Apartments, first jobs, social rooms and the city feed.",tag:"HOME",x:"48%",y:"50%"},
+      {name:"Builder District",type:"BUILD · WORK",desc:"Protocol offices, hackathons, coworking floors and developer bounties.",tag:"BUILD",x:"24%",y:"31%"},
+      {name:"Exchange Row",type:"MONEY · MARKETS",desc:"Exchanges, banks, OTC desks and places where your balance becomes a story.",tag:"MONEY",x:"73%",y:"28%"},
+      {name:"Alpha House",type:"RESEARCH · SOCIAL",desc:"Analysts, researchers, private rooms and the people who always know something.",tag:"ALPHA",x:"77%",y:"67%"},
+      {name:"NFT Quarter",type:"COLLECT · CULTURE",desc:"Galleries, collectors, auctions and PFP culture.",tag:"NFT",x:"28%",y:"72%"},
+      {name:"Degen District",type:"RISK · NIGHTLIFE",desc:"Prediction markets, casinos and late-night decisions.",tag:"DEGEN",x:"57%",y:"79%"},
+      {name:"DAO Square",type:"GOVERN · COMMUNITY",desc:"Proposals, votes, debates and protocol politics.",tag:"DAO",x:"51%",y:"23%"},
+      {name:"Conference Center",type:"EVENTS · LAUNCHES",desc:"Meetups, launches, conferences and temporary city events.",tag:"EVENT",x:"84%",y:"45%"},
+    ];
+    const selected = districts.find(d => d.name === selectedDistrict) ?? districts[0];
+    return (
+      <main className="map-screen">
+        <header className="game-topbar map-topbar">
+          <button className="map-back" onClick={() => setScreen("world")}>← HOME</button>
+          <div className="brand"><span className="brand-mark">◆</span><strong>CRYPTO LIFE</strong></div>
+          <div className="top-profile"><PfpImage pfp={pfp} /><span>@{username}</span></div>
+        </header>
+        <section className="city-map-layout">
+          <div className="city-map-copy">
+            <span className="eyebrow">GENESIS HUB · CITY MAP</span>
+            <h1>Where are you<br /><span>going?</span></h1>
+            <p>The city is a system of places. Every district has a reason to exist, people to meet and things that can change your life.</p>
+            <div className="selected-place">
+              <div><span>{selected.type}</span><strong>{selected.name}</strong></div>
+              <p>{selected.desc}</p>
+              <button className="enter-button" onClick={() => setScreen("world")}>TRAVEL TO {selected.name.toUpperCase()} <b>→</b></button>
+            </div>
+            <div className="map-legend"><span><i className="legend-dot home-dot" /> YOUR HOME</span><span><i className="legend-dot" /> DISTRICT</span><span><i className="legend-dot event-dot" /> EVENT</span></div>
+          </div>
+          <div className="city-map-card">
+            <div className="map-card-head"><span>CRYPTO CITY</span><b>DAY 01 · 08:42</b></div>
+            <div className="city-map">
+              <div className="map-river" />
+              <div className="map-road r1" /><div className="map-road r2" /><div className="map-road r3" /><div className="map-road r4" />
+              {districts.map(d => <button key={d.name} className={`district-pin ${selected.name === d.name ? "selected" : ""}`} style={{left:d.x,top:d.y}} onClick={() => setSelectedDistrict(d.name)}><span>{d.tag}</span><strong>{d.name}</strong></button>)}
+              <div className="you-marker"><span>YOU</span><b>◆</b></div>
+            </div>
+            <div className="map-card-foot"><span>8 DISTRICTS</span><span>SHARED WORLD</span><span>LIVE CITY</span></div>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
   if (screen === "world" && origin && pfp) {
     return (
       <main className="game-shell">
@@ -136,7 +183,7 @@ export default function Home() {
               <div><span>FUN</span><b><i style={{ width: "91%" }} /></b></div>
             </div>
             <div className="world-actions">
-              <button className="game-button primary-game" onClick={() => alert("City exploration is the next build slice.")}>STEP INTO THE CITY <b>→</b></button>
+              <button className="game-button primary-game" onClick={() => setScreen("map")}>STEP INTO THE CITY <b>→</b></button>
               <button className="game-button ghost-game" onClick={() => setScreen("pfp")}>VIEW LIFE</button>
             </div>
           </div>
