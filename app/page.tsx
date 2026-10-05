@@ -59,7 +59,7 @@ const pfps: PFP[] = [
     id: `pudgy-${id}`,
     name: "Pudgy Penguin" as const,
     category: "PUDGY PENGUIN" as const,
-    image: `https://api.pudgypenguins.io/penguin/${id}`,
+    image: `https://api.pudgypenguins.io/penguin/image/${id}`,
     accent: ["#ef6f86","#7eb8df","#f1b36d","#8ccfbd","#b9a0e8"][i % 5],
   })),
 ];
@@ -69,36 +69,7 @@ const pfps: PFP[] = [
 const pick = <T,>(items: T[]) => items[Math.floor(Math.random() * items.length)];
 
 function PfpImage({ pfp, className = "" }: { pfp: PFP; className?: string }) {
-  const [src, setSrc] = useState<string | null>(null);
-  const [broken, setBroken] = useState(false);
-
-  useEffect(() => {
-    let alive = true;
-    if (!pfp.image.includes("api.pudgypenguins.io")) {
-      setSrc(pfp.image);
-      return;
-    }
-    fetch(pfp.image)
-      .then(r => r.json())
-      .then(data => {
-        if (alive) setSrc(data.image || data.image_url || data.animation_url || null);
-      })
-      .catch(() => alive && setBroken(true));
-    return () => { alive = false; };
-  }, [pfp.image]);
-
-  if (broken || !src) {
-    return <div className={`pfp-fallback ${className}`} style={{ background: pfp.accent }}>
-      <span>{pfp.category.slice(0, 2)}</span>
-    </div>;
-  }
-
-  return <img
-    className={`pfp-image ${className}`}
-    src={src}
-    alt={pfp.name}
-    onError={() => setBroken(true)}
-  />;
+  return <img className={`pfp-image ${className}`} src={pfp.image} alt={pfp.name} loading="eager" decoding="async" />;
 }
 
 export default function Home() {
