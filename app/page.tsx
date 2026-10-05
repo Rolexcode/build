@@ -310,7 +310,7 @@ export default function Home() {
               <div className="character-badge"><span>GENESIS</span><strong>#{lifeNumber}</strong></div>
             </div>
             <div className="character-pfp-meta">
-              <span>{pfp.collection}</span>
+              <span>GENESIS PFP</span>
               <strong>{pfp.name}</strong>
             </div>
             <div className="character-note">
@@ -354,7 +354,7 @@ export default function Home() {
               <strong>{name.split(" ")[0]} just spawned.</strong>
               <small>The city is already moving.</small>
               <div className="origin-pfp-stack">
-                {pfps.slice(0, 4).map(item => <PfpImage key={item.id} pfp={item} />)}
+                {[pfps[0], pfps[12], pfps[17], pfps[29]].map(item => <PfpImage key={item.id} pfp={item} />)}
               </div>
               <p>Thousands of lives. One shared timeline.</p>
             </div>
