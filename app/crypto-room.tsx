@@ -75,6 +75,32 @@ function PfpTexture({image,onReady}:{image:string;onReady:(texture:CanvasTexture
   return null;
 }
 
+function IdentityBadge({texture}:{texture:CanvasTexture}) {
+  const ref = useRef<Group>(null);
+  const { camera } = useThree();
+
+  useFrame(() => {
+    if (ref.current) ref.current.quaternion.copy(camera.quaternion);
+  });
+
+  return (
+    <group ref={ref} position={[0,2.02,0.03]}>
+      <mesh position={[0,0,-0.018]} castShadow>
+        <planeGeometry args={[0.58,0.58]}/>
+        <meshBasicMaterial color="#1d241c"/>
+      </mesh>
+      <mesh position={[0,0,0]}>
+        <planeGeometry args={[0.49,0.49]}/>
+        <meshBasicMaterial map={texture} transparent/>
+      </mesh>
+      <mesh position={[0,-0.31,0.01]}>
+        <planeGeometry args={[0.32,0.025]}/>
+        <meshBasicMaterial color="#8fb24d"/>
+      </mesh>
+    </group>
+  );
+}
+
 function RealAvatar({accent,pfpImage}:{accent:string;pfpImage?:string}) {
   const ref=useRef<Group>(null);
   const [model,setModel]=useState<any>(null);
@@ -86,43 +112,58 @@ function RealAvatar({accent,pfpImage}:{accent:string;pfpImage?:string}) {
       "https://readyplayerme.github.io/web-3d-viewer/male.glb",
       gltf=>{
         if(!mounted)return;
-        // Keep the realistic body, but replace the head with the player's actual PFP.
+
         gltf.scene.traverse((node:Object3D)=>{
           const mesh=node as Mesh;
+          if(!("isMesh" in mesh)) return;
           const n=(node.name||"").toLowerCase();
-          if("isMesh" in mesh && (n.includes("hair") || n.includes("eye") || n.includes("teeth"))){
-            mesh.visible=false;
+
+          // Keep the actual RPM head, hair, eyes and clothing.
+          // The PFP is now a player identity marker above the character,
+          // not a fake spherical head.
+          if(n.includes("hair") || n.includes("eye") || n.includes("teeth")){
+            mesh.visible=true;
+          }
+
+          const material:any = mesh.material;
+          const materials = Array.isArray(material) ? material : [material];
+          for(const mat of materials){
+            if(!mat?.color) continue;
+            if(n.includes("body") || n.includes("skin") || n.includes("head") || n.includes("face")){
+              mat.color.set("#b98263");
+              mat.roughness = 0.78;
+            }
+            if(n.includes("shirt") || n.includes("top") || n.includes("outfit") || n.includes("hoodie")){
+              mat.color.set(accent);
+              mat.roughness = 0.68;
+            }
           }
         });
+
         setModel(gltf.scene);
       },
       undefined,
       ()=>{}
     );
     return ()=>{mounted=false};
-  },[]);
+  },[accent]);
 
   useFrame(({clock})=>{
-    if(ref.current) ref.current.position.y=0.02+Math.sin(clock.elapsedTime*1.7)*0.012;
+    if(ref.current){
+      ref.current.position.y = Math.sin(clock.elapsedTime*1.35)*0.006;
+      ref.current.rotation.y = Math.sin(clock.elapsedTime*0.45)*0.025;
+    }
   });
 
   return (
-    <group ref={ref} position={[0.45,0,0.25]} scale={0.78}>
+    <group ref={ref} position={[-4.05,0,0.45]} scale={0.74}>
       {pfpImage && <PfpTexture image={pfpImage} onReady={setPfpTexture}/>}
-      {model ? <primitive object={model.clone(true)} /> : <>
-        <mesh position={[0,0.9,0]}>
-          <capsuleGeometry args={[0.3,1.05,8,16]}/>
-          <meshStandardMaterial color={accent}/>
-        </mesh>
-      </>}
-      {pfpTexture && (
-        <group position={[0,1.74,0.02]}>
-          <mesh scale={[0.82,1,0.62]} castShadow>
-            <sphereGeometry args={[0.34,48,32]}/>
-            <meshStandardMaterial map={pfpTexture} roughness={0.7} metalness={0.01}/>
-          </mesh>
-        </group>
-      )}
+      {model ? <primitive object={model.clone(true)} /> : null}
+      {pfpTexture && <IdentityBadge texture={pfpTexture}/>}
+      <mesh position={[0,0.025,0]} rotation={[-Math.PI/2,0,0]}>
+        <circleGeometry args={[0.43,32]}/>
+        <meshBasicMaterial color="#1c211b" transparent opacity={0.16}/>
+      </mesh>
     </group>
   );
 }
@@ -160,7 +201,7 @@ function FurnishedApartment({style}:{style:RoomStyle}) {
 
   // The asset is already a staged, front-open flat. Keep it low and centered
   // so the player reads as a person inside a real home, not a model floating in a box.
-  return <primitive object={apartment} position={[-5.03,0,-2.05]} />;
+  return <primitive object={apartment} position={[-5.03,0,-2.05]} scale={[1.18,1,1.08]} />;
 }
 
 
