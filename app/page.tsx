@@ -32,6 +32,71 @@ const origins: Origin[] = [
 ];
 
 const pfps: PFP[] = [
+  ...Array.from({ length: 12 }, (_, i) => ({
+    id: `punk-${i}`,
+    name: `CryptoPunk #${i}`,
+    collection: "CryptoPunks",
+    image: `https://files.larvalabs.com/cryptopunks/original/punk${i}.png`,
+    accent: "#79d8ff",
+  })),
+  ...[
+    ["gyaru", "Gyaru Milady"], ["prep", "Prep Milady"], ["lolita", "Lolita Milady"],
+    ["hypebeast", "Hypebeast Milady"], ["harajuku", "Harajuku Milady"],
+  ].map(([style, name]) => ({
+    id: `milady-${style}`,
+    name,
+    collection: "Milady Maker",
+    image: `https://www.miladymaker.net/images/${style}.png`,
+    accent: "#d98b7b",
+  })),
+  ...Array.from({ length: 12 }, (_, i) => ({
+    id: `wojak-${i + 1}`,
+    name: `Rare Wojak #${i + 1}`,
+    collection: "Rare Wojak",
+    image: `https://rarewojak.com/images/wojaks/${i + 1}.png`,
+    accent: "#ff7a24",
+  })),
+  ...Array.from({ length: 12 }, (_, i) => ({
+    id: `pudgy-${1219 + i}`,
+    name: `Pudgy Penguin #${1219 + i}`,
+    collection: "Pudgy Penguins",
+    image: `https://f8n-production-collection-assets.imgix.net/0xBd3531dA5CF5857e7CfAA92426877b022e612cf8/${1219 + i}/nft.png?auto=format%2Ccompress&cs=srgb&fnd_key=v1&h=1200&q=70&w=1200`,
+    accent: "#ef6f86",
+  })),
+];se client";
+
+import dynamic from "next/dynamic";
+import { useEffect, useMemo, useState } from "react";
+
+const CryptoRoom = dynamic(() => import("./crypto-room"), { ssr: false });
+
+type Origin = {
+  name: string;
+  tagline: string;
+  cash: string;
+  trait: string;
+  color: string;
+};
+
+type PFP = {
+  id: string;
+  name: string;
+  collection: string;
+  image: string;
+  accent: string;
+};
+
+const origins: Origin[] = [
+  { name: "Airdrop Hunter", tagline: "You were born hunting.", cash: "$2,800", trait: "Scout", color: "#7c5cff" },
+  { name: "Crypto Developer", tagline: "You speak in commits.", cash: "$1,900", trait: "Builder", color: "#00a6a6" },
+  { name: "Crypto Analyst", tagline: "You read the room.", cash: "$2,400", trait: "Alpha", color: "#36a269" },
+  { name: "Degen", tagline: "Risk is your cardio.", cash: "$1,250", trait: "Degen", color: "#ff6b35" },
+  { name: "Web3 Jobber", tagline: "You mod, shill, host, grind.", cash: "$2,100", trait: "Operator", color: "#e44f8f" },
+  { name: "NFT Native", tagline: "The PFP is the identity.", cash: "$1,700", trait: "Collector", color: "#d09b25" },
+  { name: "Crypto Guru", tagline: "You caught the cycle early.", cash: "$1,250,000", trait: "Whale", color: "#d5ad47" },
+];
+
+const pfps: PFP[] = [
   {
     id: "milady-gyaru",
     name: "Gyaru Milady",
@@ -135,7 +200,7 @@ export default function Home() {
         <header className="game-topbar map-topbar">
           <button className="map-back" onClick={() => setScreen("world")}>← HOME</button>
           <div className="brand"><span className="brand-mark">◆</span><strong>CRYPTO LIFE</strong></div>
-          <div className="top-profile"><PfpImage pfp={pfp} /><span>@{username}</span></div>
+          <div className="top-profile"><span>@{username}</span></div>
         </header>
         <section className="city-map-layout">
           <div className="city-map-copy">
@@ -176,7 +241,7 @@ export default function Home() {
           <div className="scene-copy">
             <span className="eyebrow">DAY 01 · 08:42 AM · GENESIS HUB</span>
             <h1>GM, <span>{name.split(" ")[0]}.</span></h1>
-            <p>You just spawned into the timeline. The market is moving. Your phone is buzzing. Someone in the group chat already has alpha.</p>
+            <p>You just spawned into the timeline. This is your starter home. Build your skills, earn your first serious money, then upgrade the life around you.</p>
             <div className="needs">
               <div><span>ENERGY</span><b><i style={{ width: "82%" }} /></b></div>
               <div><span>HUNGER</span><b><i style={{ width: "68%" }} /></b></div>
@@ -187,7 +252,7 @@ export default function Home() {
               <button className="game-button ghost-game" onClick={() => setScreen("pfp")}>VIEW LIFE</button>
             </div>
           </div>
-          <div className="room"><CryptoRoom originName={origin.name} cash={origin.cash} pfpImage={pfp.image} /></div>
+          <div className="room"><CryptoRoom originName={origin.name} cash={origin.cash} /></div>
         </section>
       </main>
     );
@@ -250,7 +315,7 @@ export default function Home() {
             </div>
             <div className="character-note">
               <span>✦</span>
-              <p><strong>This is your face in the world.</strong> It appears above your player, in chat, on profiles and on the leaderboard.</p>
+              <p><strong>This is your genesis identity.</strong> It is assigned at onboarding and lives in your identity, profile and social layer.</p>
             </div>
           </div>
         </section>
