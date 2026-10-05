@@ -56,54 +56,9 @@ function Orbit({target}:{target:[number,number,number]}) {
   return null;
 }
 
-function PfpTexture({image,onReady}:{image:string;onReady:(texture:CanvasTexture)=>void}) {
-  useEffect(()=>{
-    let alive=true;
-    const img=new Image();
-    img.crossOrigin="anonymous";
-    img.onload=()=>{
-      if(!alive)return;
-      const canvas=document.createElement("canvas");
-      canvas.width=512; canvas.height=512;
-      const ctx=canvas.getContext("2d");
-      if(!ctx)return;
-      ctx.clearRect(0,0,512,512);
-      ctx.drawImage(img,0,0,512,512);
-      const texture=new CanvasTexture(canvas);
-      texture.colorSpace=SRGBColorSpace;
-      texture.needsUpdate=true;
-      onReady(texture);
-    };
-    img.src=image;
-    return ()=>{alive=false};
-  },[image,onReady]);
-  return null;
-}
-
-function PfpFace({texture}:{texture:CanvasTexture}) {
-  const ref=useRef<Group>(null);
-  const {camera}=useThree();
-
-  useFrame(()=>{
-    // The PFP is an identity badge, not a replacement body. Keep it small,
-    // circular and attached to the head so the 3D character remains dominant.
-    if(ref.current) ref.current.quaternion.copy(camera.quaternion);
-  });
-
-  return (
-    <group ref={ref} position={[0,2.04,0.23]}>
-      <mesh>
-        <circleGeometry args={[0.18,48]}/>
-        <meshBasicMaterial map={texture} transparent/>
-      </mesh>
-    </group>
-  );
-}
-
 function RealAvatar({accent,pfpImage}:{accent:string;pfpImage?:string}) {
   const ref=useRef<Group>(null);
   const [model,setModel]=useState<any>(null);
-  const [pfpTexture,setPfpTexture]=useState<CanvasTexture|null>(null);
   const bones=useRef<Record<string,Bone>>({});
   const baseRotations=useRef<Record<string,{x:number;y:number;z:number}>>({});
 
@@ -189,9 +144,7 @@ function RealAvatar({accent,pfpImage}:{accent:string;pfpImage?:string}) {
 
   return (
     <group ref={ref} position={[-4.65,0,-1.55]} scale={0.92}>
-      {pfpImage && <PfpTexture image={pfpImage} onReady={setPfpTexture}/>}
       {model ? <primitive object={model.clone(true)} /> : null}
-      {pfpTexture && <PfpFace texture={pfpTexture}/>}
       <mesh position={[0,0.025,0]} rotation={[-Math.PI/2,0,0]}>
         <circleGeometry args={[0.42,32]}/>
         <meshBasicMaterial color="#1c211b" transparent opacity={0.15}/>
@@ -271,7 +224,7 @@ function HomeHotspots({onAction}:{onAction:(action:HomeAction)=>void}) {
   </>;
 }
 
-function Scene({style,pfpImage,originName,cash,onAction}:{style?:RoomStyle;pfpImage?:string;originName?:string;cash?:string;onAction?:(action:HomeAction)=>void}) {
+function Scene({style,originName,cash,onAction}:{style?:RoomStyle;pfpImage?:string;originName?:string;cash?:string;onAction?:(action:HomeAction)=>void}) {
   const sceneStyle:RoomStyle=style ?? {label:"STARTER APARTMENT",subtitle:"your first home",wall:"#eee7dc",floor:"#c8b8a6",furniture:"#4d5149",accent:"#d98b7b",luxe:false};
   const target:[number,number,number]=[-5.3,1.02,-1.75];
 
@@ -287,7 +240,7 @@ function Scene({style,pfpImage,originName,cash,onAction}:{style?:RoomStyle;pfpIm
   </>;
 }
 
-export default function CryptoRoom(props:{style?:RoomStyle;pfpImage?:string;originName?:string;cash?:string}) {
+export default function CryptoRoom(props:{style?:RoomStyle;originName?:string;cash?:string}) {
   const [active,setActive]=useState<HomeAction|null>(null);
   const [toast,setToast]=useState<string|null>(null);
   const action=active?homeActions[active]:null;
@@ -305,7 +258,7 @@ export default function CryptoRoom(props:{style?:RoomStyle;pfpImage?:string;orig
         <Scene {...props} onAction={setActive}/>
       </Canvas>
 
-      <div className="home-hint">TAP THE HOME OBJECTS · DRAG TO LOOK AROUND</div>
+      <div className="home-hint">TAP HOME OBJECTS · DRAG TO LOOK · STARTER HOME</div>
 
       <div className="home-interactions">
         {(["sleep","hygiene","cook","work","watch"] as HomeAction[]).map(key=>{
