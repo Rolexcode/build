@@ -163,7 +163,36 @@ function FurnishedApartment({style}:{style:RoomStyle}) {
   return <primitive object={apartment} position={[-5.03,0,-2.05]} />;
 }
 
-function Scene({style,pfpImage,originName,cash}:{style?:RoomStyle;pfpImage?:string;originName?:string;cash?:string}) {\n  const sceneStyle = style ?? { accent:"#d98b7b", floor:"#c8b8a6", wall:"#eee7dc", luxe:false };
+
+type HomeAction = "sleep" | "hygiene" | "cook" | "work" | "watch";
+
+const homeActions: Record<HomeAction,{label:string;title:string;detail:string;need:string;amount:number}> = {
+  sleep:{label:"BED",title:"Sleep",detail:"Recover energy and start the next part of your day.",need:"ENERGY",amount:18},
+  hygiene:{label:"BATHROOM",title:"Freshen Up",detail:"Wash up before heading into the city.",need:"HYGIENE",amount:22},
+  cook:{label:"KITCHEN",title:"Cook",detail:"Make a quick meal and refill your hunger.",need:"HUNGER",amount:24},
+  work:{label:"DESK",title:"Work",detail:"Open your laptop and grind a crypto task from home.",need:"CASH",amount:120},
+  watch:{label:"TV / LOUNGE",title:"Watch",detail:"Take a break and raise your fun.",need:"FUN",amount:16},
+};
+
+function HomeHotspots({onAction}:{onAction:(action:HomeAction)=>void}) {
+  const spots:{action:HomeAction;position:[number,number,number];size:[number,number]}[] = [
+    {action:"sleep",position:[-6.9,0.72,-2.55],size:[1.7,0.9]},
+    {action:"hygiene",position:[-2.25,0.78,-2.35],size:[1.15,1]},
+    {action:"cook",position:[-8.15,0.78,-0.55],size:[1.65,1]},
+    {action:"work",position:[-2.95,0.82,-0.65],size:[1.5,1]},
+    {action:"watch",position:[-5.05,0.82,-0.25],size:[1.7,1]},
+  ];
+  return <>
+    {spots.map(({action,position,size}) => (
+      <mesh key={action} position={position} onClick={(e)=>{e.stopPropagation();onAction(action);}}>
+        <planeGeometry args={size}/>
+        <meshBasicMaterial transparent opacity={0} depthWrite={false}/>
+      </mesh>
+    ))}
+  </>;
+}
+
+function Scene({style,pfpImage,originName,cash,onAction}:{style?:RoomStyle;pfpImage?:string;originName?:string;cash?:string;onAction?:(action:HomeAction)=>void}) {\n  const sceneStyle = style ?? { accent:"#d98b7b", floor:"#c8b8a6", wall:"#eee7dc", luxe:false };
   return <>
     <ambientLight intensity={1.05}/>
     <directionalLight position={[4,8,7]} intensity={2.7} castShadow shadow-mapSize={[1024,1024]}/>
@@ -171,8 +200,66 @@ function Scene({style,pfpImage,originName,cash}:{style?:RoomStyle;pfpImage?:stri
     <pointLight position={[-2,3.2,2]} intensity={7} distance={10} color={sceneStyle.luxe?"#f8dca2":"#d8f0df"}/>
     <FurnishedApartment style={sceneStyle}/>
     <RealAvatar accent={sceneStyle.accent} pfpImage={pfpImage}/>
+    {onAction && <HomeHotspots onAction={onAction}/>} 
     <Orbit target={[0,1.05,0]}/>
   </>;
 }
 
-export default Scene;
+
+export default function CryptoRoom(props:{style?:RoomStyle;pfpImage?:string;originName?:string;cash?:string}) {
+  const [active,setActive] = useState<HomeAction|null>(null);
+  const [toast,setToast] = useState<string|null>(null);
+
+  const action = active ? homeActions[active] : null;
+
+  const perform = () => {
+    if(!action) return;
+    setToast(
+      action.need === "CASH"
+        ? "+$120 earned · desk session complete"
+        : `+${action.amount} ${action.need.toLowerCase()} restored`
+    );
+    setActive(null);
+    window.setTimeout(()=>setToast(null),1800);
+  };
+
+  return (
+    <div className="crypto-room-wrap">
+      <Canvas camera={{position:[8.8,5.6,10.8],fov:40}} shadows>
+        <Scene {...props} onAction={setActive}/>
+      </Canvas>
+
+      <div className="home-hint">TAP THE HOME OBJECTS · DRAG TO LOOK AROUND</div>
+
+      <div className="home-interactions">
+        {(["sleep","hygiene","cook","work","watch"] as HomeAction[]).map(key => {
+          const item=homeActions[key];
+          return (
+            <button key={key} className={`home-action ${active===key ? "selected" : ""}`} onClick={()=>setActive(key)}>
+              <span>{item.label}</span>
+              <strong>{item.title}</strong>
+            </button>
+          );
+        })}
+      </div>
+
+      {active && action && (
+        <div className="home-action-modal">
+          <div className="home-action-card">
+            <span className="eyebrow">HOME · {action.need}</span>
+            <h3>{action.title}</h3>
+            <p>{action.detail}</p>
+            <div className="home-action-meta">RESTORE {action.amount}{action.need==="CASH" ? " USD" : "%"}</div>
+            <div className="home-action-buttons">
+              <button onClick={perform}>DO IT →</button>
+              <button onClick={()=>setActive(null)}>CANCEL</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {toast && <div className="home-toast">{toast}</div>}
+    </div>
+  );
+}
+
