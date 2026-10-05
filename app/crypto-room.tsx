@@ -192,7 +192,8 @@ function HomeHotspots({onAction}:{onAction:(action:HomeAction)=>void}) {
   </>;
 }
 
-function Scene({style,pfpImage,originName,cash,onAction}:{style?:RoomStyle;pfpImage?:string;originName?:string;cash?:string;onAction?:(action:HomeAction)=>void}) {\n  const sceneStyle = style ?? { accent:"#d98b7b", floor:"#c8b8a6", wall:"#eee7dc", luxe:false };
+function Scene({style,pfpImage,originName,cash,onAction}:{style?:RoomStyle;pfpImage?:string;originName?:string;cash?:string;onAction?:(action:HomeAction)=>void}) {
+  const sceneStyle = style ?? { accent:"#d98b7b", floor:"#c8b8a6", wall:"#eee7dc", luxe:false };
   return <>
     <ambientLight intensity={1.05}/>
     <directionalLight position={[4,8,7]} intensity={2.7} castShadow shadow-mapSize={[1024,1024]}/>
