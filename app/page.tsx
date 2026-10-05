@@ -140,7 +140,7 @@ export default function Home() {
               <button className="game-button ghost-game" onClick={() => setScreen("pfp")}>VIEW LIFE</button>
             </div>
           </div>
-          <div className="room"><CryptoRoom originName={origin.name} cash={origin.cash} /></div>
+          <div className="room"><CryptoRoom originName={origin.name} cash={origin.cash} pfpImage={pfp.image} /></div>
         </section>
       </main>
     );
