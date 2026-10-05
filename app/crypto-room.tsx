@@ -234,7 +234,7 @@ function Scene({style,originName,cash,onAction}:{style?:RoomStyle;pfpImage?:stri
     <hemisphereLight args={["#fffdf5","#87957e",1.15]}/>
     <pointLight position={[-4,3.2,2]} intensity={7} distance={12} color={sceneStyle.luxe?"#f8dca2":"#d8f0df"}/>
     <FurnishedApartment style={sceneStyle}/>
-    <RealAvatar accent={sceneStyle.accent} pfpImage={pfpImage}/>
+    <RealAvatar accent={sceneStyle.accent}/>
     {onAction && <HomeHotspots onAction={onAction}/>}
     <Orbit target={target}/>
   </>;
