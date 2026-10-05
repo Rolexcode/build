@@ -90,7 +90,7 @@ function RealAvatar({accent,pfpImage}:{accent:string;pfpImage?:string}) {
         gltf.scene.traverse((node:Object3D)=>{
           const mesh=node as Mesh;
           const n=(node.name||"").toLowerCase();
-          if("isMesh" in mesh && (n.includes("head") || n.includes("hair") || n.includes("eye") || n.includes("teeth") || n.includes("face"))){
+          if("isMesh" in mesh && (n.includes("hair") || n.includes("eye") || n.includes("teeth"))){
             mesh.visible=false;
           }
         });
@@ -167,11 +167,10 @@ function Scene({style,pfpImage}:{style:RoomStyle;pfpImage?:string}) {
     <directionalLight position={[4,8,7]} intensity={2.7} castShadow shadow-mapSize={[1024,1024]}/>
     <hemisphereLight args={["#fffdf5","#87957e",1.15]}/>
     <pointLight position={[-2,3.2,2]} intensity={7} distance={10} color={style.luxe?"#f8dca2":"#d8f0df"}/>
-
     <FurnishedApartment style={style}/>
     <RealAvatar accent={style.accent} pfpImage={pfpImage}/>
-
     <Orbit target={[0,1.05,0]}/>
   </>;
 }
 
+export default Scene;
