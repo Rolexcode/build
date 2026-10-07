@@ -4,12 +4,13 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useRef, useState } from "react";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { AnimationMixer } from "three";
 import type { Bone, Group, Mesh, Object3D } from "three";
 
 const FURNISHED_FLAT_URL = "https://cdn.3dassets.dev/assets/38818/v1/model.glb";
-// CC0 Quaternius humanoid, bundled by an open-source avatar project.
-// It gives us a real head/body/arms/legs instead of the old RPM + sphere construction.
-const AVATAR_URL = "https://threejs.org/examples/models/gltf/Xbot.glb";
+// One compact, skinned GLB with a real idle clip keeps the character dimensional
+// without a full character creator or a heavy avatar service on first paint.
+const AVATAR_URL = "https://threejs.org/examples/models/gltf/Soldier.glb";
 
 type RoomStyle = {
   label:string; subtitle:string; wall:string; floor:string; furniture:string; accent:string; luxe:boolean;
@@ -58,6 +59,7 @@ function Orbit({target}:{target:[number,number,number]}) {
 function RealAvatar({accent}:{accent:string}) {
   const ref=useRef<Group>(null);
   const [model,setModel]=useState<any>(null);
+  const mixer=useRef<AnimationMixer|null>(null);
   const bones=useRef<Record<string,Bone>>({});
   const baseRotations=useRef<Record<string,{x:number;y:number;z:number}>>({});
 
@@ -96,16 +98,20 @@ function RealAvatar({accent}:{accent:string}) {
             }
           }
         });
+        mixer.current=new AnimationMixer(gltf.scene);
+        const idle=gltf.animations.find(clip=>clip.name.toLowerCase().includes("idle")) ?? gltf.animations[0];
+        if(idle) mixer.current.clipAction(idle).reset().fadeIn(0.2).play();
         setModel(gltf.scene);
       },
       undefined,
       ()=>{}
     );
-    return ()=>{mounted=false};
+    return ()=>{mounted=false;mixer.current?.stopAllAction();mixer.current=null};
   },[accent]);
 
-  useFrame(({clock})=>{
+  useFrame(({clock},delta)=>{
     const t=clock.elapsedTime;
+    mixer.current?.update(delta);
 
     if(ref.current){
       // Small, continuous motion is what separates a placed model from a
@@ -144,8 +150,8 @@ function RealAvatar({accent}:{accent:string}) {
   });
 
   return (
-    <group ref={ref} position={[-4.65,0,-1.55]} scale={0.92}>
-      {model ? <primitive object={model.clone(true)} /> : null}
+    <group ref={ref} position={[-4.65,0,-1.55]} scale={1.04}>
+      {model ? <primitive object={model} /> : null}
       <mesh position={[0,0.025,0]} rotation={[-Math.PI/2,0,0]}>
         <circleGeometry args={[0.42,32]}/>
         <meshBasicMaterial color="#1c211b" transparent opacity={0.15}/>
