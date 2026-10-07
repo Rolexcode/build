@@ -68,16 +68,18 @@ function RealAvatar({accent}:{accent:string}) {
       gltf=>{
         if(!mounted)return;
         gltf.scene.traverse((node:Object3D)=>{
-          const mesh=node as Mesh;
-          if(!("isMesh" in mesh)) return;
-          mesh.castShadow=true;
-          mesh.receiveShadow=true;
-
+          // Bones are not meshes. Read the rig before handling surface meshes,
+          // otherwise the avatar looks like a placed statue instead of a person.
           if((node as any).isBone){
             const key=node.name.toLowerCase().replace(/[^a-z0-9]/g,"");
             bones.current[key]=node as Bone;
             baseRotations.current[key]={x:node.rotation.x,y:node.rotation.y,z:node.rotation.z};
+            return;
           }
+          const mesh=node as Mesh;
+          if(!("isMesh" in mesh)) return;
+          mesh.castShadow=true;
+          mesh.receiveShadow=true;
 
           const material:any=mesh.material;
           const materials=Array.isArray(material)?material:[material];

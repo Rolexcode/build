@@ -25,6 +25,13 @@ type PhoneTab = "home" | "wallet" | "messages" | "pulse" | "city";
 
 type MarketPrice = { symbol: string; label: string; price: number; change: number };
 
+const districts = [
+  { name: "Genesis Hub", tag: "HOME", x: "48%", y: "50%" }, { name: "Builder District", tag: "BUILD", x: "24%", y: "31%" },
+  { name: "Exchange Row", tag: "MONEY", x: "73%", y: "28%" }, { name: "Alpha House", tag: "ALPHA", x: "77%", y: "67%" },
+  { name: "NFT Quarter", tag: "NFT", x: "28%", y: "72%" }, { name: "Degen District", tag: "DEGEN", x: "57%", y: "79%" },
+  { name: "DAO Square", tag: "DAO", x: "51%", y: "23%" }, { name: "Conference Center", tag: "EVENT", x: "84%", y: "45%" },
+];
+
 const origins: Origin[] = [
   { name: "Airdrop Hunter", tagline: "You were born hunting.", cash: "$2,800", trait: "Scout", color: "#7c5cff" },
   { name: "Crypto Developer", tagline: "You speak in commits.", cash: "$1,900", trait: "Builder", color: "#00a6a6" },
@@ -74,6 +81,16 @@ const pick = <T,>(items: T[]) => items[Math.floor(Math.random() * items.length)]
 
 function PfpImage({ pfp, className = "" }: { pfp: PFP; className?: string }) {
   return <img className={`pfp-image ${className}`} src={pfp.image} alt={pfp.name} loading="eager" decoding="async" />;
+}
+
+function CitySheet({ selected, select, close, onAction }: { selected: string; select: (name: string) => void; close: () => void; onAction: (message: string, reputation: number) => void }) {
+  return <div className="city-overlay" role="dialog" aria-modal="true" aria-label="Crypto City map">
+    <section className="city-sheet">
+      <header><div><span>CRYPTO CITY · DAY 01</span><strong>Where are you going?</strong></div><button onClick={close} aria-label="Close city map">×</button></header>
+      <div className="city-mini-map"><div className="map-river" /><div className="map-road r1" /><div className="map-road r2" /><div className="map-road r3" /><div className="map-road r4" />{districts.map(district => <button key={district.name} className={`district-pin ${selected === district.name ? "selected" : ""}`} style={{ left: district.x, top: district.y }} onClick={() => select(district.name)}><span>{district.tag}</span><strong>{district.name}</strong></button>)}</div>
+      <div className="nearby-card"><div><span>NEARBY · ALPHA HOUSE</span><strong>Rae Imani</strong><p>Researcher · “Always knows someone who knows.”</p></div><div className="nearby-actions"><button onClick={() => onAction("You nodded at Rae · she remembers you", 1)}>NOD</button><button onClick={() => onAction("Message sent to Rae · a conversation has started", 2)}>MESSAGE</button><button onClick={() => onAction(`You headed to ${selected} · the city keeps moving`, 1)}>GO THERE →</button></div></div>
+    </section>
+  </div>;
 }
 
 function Phone({
@@ -141,6 +158,7 @@ export default function Home() {
   const [pfp, setPfp] = useState<PFP | null>(null);
   const [lifeNumber, setLifeNumber] = useState<number | null>(null);
   const [phoneOpen, setPhoneOpen] = useState(false);
+  const [mapOpen, setMapOpen] = useState(false);
   const [phoneTab, setPhoneTab] = useState<PhoneTab>("home");
   const [cash, setCash] = useState(1250);
   const [reputation, setReputation] = useState(12);
@@ -162,6 +180,7 @@ export default function Home() {
 
   useEffect(() => {
     let active = true;
+    if (!phoneOpen || phoneTab !== "wallet" || screen !== "world") return;
     const getMarkets = async () => {
       try {
         const responses = await Promise.all(["BTC", "ETH", "SOL"].map(symbol => fetch(`https://api.coinbase.com/v2/prices/${symbol}-USD/spot`)));
@@ -175,7 +194,7 @@ export default function Home() {
     getMarkets();
     const timer = window.setInterval(getMarkets, 60_000);
     return () => { active = false; window.clearInterval(timer); };
-  }, []);
+  }, [phoneOpen, phoneTab, screen]);
 
   const showNotice = (message: string) => {
     setNotice(message);
@@ -212,6 +231,7 @@ export default function Home() {
     setPfp(null);
     setLifeNumber(null);
     setPhoneOpen(false);
+    setMapOpen(false);
     setScreen("signup");
   };
 
@@ -282,7 +302,7 @@ export default function Home() {
               <div><span>FUN</span><b><i style={{ width: `${needs.fun}%` }} /></b><small>{needs.fun}</small></div>
             </div>
             <div className="world-actions">
-              <button className="game-button primary-game" onClick={() => setScreen("map")}>STEP INTO THE CITY <b>→</b></button>
+              <button className="game-button primary-game" onClick={() => setMapOpen(true)}>STEP INTO THE CITY <b>→</b></button>
               <button className="game-button ghost-game" onClick={() => setScreen("pfp")}>VIEW LIFE</button>
             </div>
           </div>
@@ -290,6 +310,7 @@ export default function Home() {
         </section>
         {notice && <div className="life-notice" role="status">{notice}</div>}
         {phoneOpen && <Phone pfp={pfp} username={username} cash={cash} reputation={reputation} markets={markets} tab={phoneTab} setTab={setPhoneTab} close={() => setPhoneOpen(false)} onChoice={(message, cashDelta, reputationDelta) => { setCash(current => current + cashDelta); setReputation(current => Math.max(0, Math.min(100, current + reputationDelta))); showNotice(message); }} />}
+        {mapOpen && <CitySheet selected={selectedDistrict} select={setSelectedDistrict} close={() => setMapOpen(false)} onAction={(message, reputationDelta) => { setReputation(current => Math.min(100, current + reputationDelta)); setMapOpen(false); showNotice(message); }} />}
       </main>
     );
   }
