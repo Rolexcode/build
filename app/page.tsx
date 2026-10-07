@@ -21,6 +21,10 @@ type PFP = {
   accent: string;
 };
 
+type PhoneTab = "home" | "wallet" | "messages" | "pulse" | "city";
+
+type MarketPrice = { symbol: string; label: string; price: number; change: number };
+
 const origins: Origin[] = [
   { name: "Airdrop Hunter", tagline: "You were born hunting.", cash: "$2,800", trait: "Scout", color: "#7c5cff" },
   { name: "Crypto Developer", tagline: "You speak in commits.", cash: "$1,900", trait: "Builder", color: "#00a6a6" },
@@ -72,6 +76,61 @@ function PfpImage({ pfp, className = "" }: { pfp: PFP; className?: string }) {
   return <img className={`pfp-image ${className}`} src={pfp.image} alt={pfp.name} loading="eager" decoding="async" />;
 }
 
+function Phone({
+  pfp, username, cash, reputation, markets, tab, setTab, close, onChoice,
+}: {
+  pfp: PFP; username: string; cash: number; reputation: number; markets: MarketPrice[]; tab: PhoneTab;
+  setTab: (tab: PhoneTab) => void; close: () => void; onChoice: (message: string, cashDelta: number, reputationDelta: number) => void;
+}) {
+  const tabs: { id: PhoneTab; label: string; icon: string }[] = [
+    { id: "home", label: "Now", icon: "●" }, { id: "wallet", label: "Wallet", icon: "◇" },
+    { id: "messages", label: "Chats", icon: "◌" }, { id: "pulse", label: "Pulse", icon: "↗" }, { id: "city", label: "City", icon: "⌘" },
+  ];
+  const formatPrice = (price: number) => price ? new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: price < 100 ? 2 : 0 }).format(price) : "Syncing…";
+
+  return (
+    <div className="phone-overlay" role="dialog" aria-modal="true" aria-label="Your in-game phone">
+      <section className="phone-shell">
+        <header className="phone-head">
+          <div className="phone-person"><PfpImage pfp={pfp} /><div><span>YOUR PHONE</span><strong>@{username}</strong></div></div>
+          <button className="phone-close" onClick={close} aria-label="Close phone">×</button>
+        </header>
+        <main className="phone-content">
+          {tab === "home" && <>
+            <span className="phone-kicker">DAY 01 · 08:42</span><h2>The city is <em>moving.</em></h2>
+            <div className="phone-card focus-card"><span>RIGHT NOW</span><strong>Orbit is looking for a community operator.</strong><p>One shift. $180. A useful person might notice.</p><button onClick={() => onChoice("You took the Orbit shift · +$180 · new contact unlocked", 180, 4)}>TAKE THE SHIFT <b>→</b></button></div>
+            <div className="notification-list">
+              <button onClick={() => setTab("messages")}><i>01</i><div><strong>Alpha House</strong><span>Rae: “Something is brewing.”</span></div><b>NOW</b></button>
+              <button onClick={() => setTab("pulse")}><i>02</i><div><strong>Prediction market</strong><span>Will BTC close green today?</span></div><b>2m</b></button>
+              <button onClick={() => setTab("city")}><i>03</i><div><strong>City invite</strong><span>Founder drinks · 21:00</span></div><b>1h</b></button>
+            </div>
+          </>}
+          {tab === "wallet" && <>
+            <span className="phone-kicker">WALLET · SIMULATED LIFE BALANCE</span><h2>${cash.toLocaleString()}<em> available.</em></h2>
+            <div className="wallet-summary"><div><span>REPUTATION</span><strong>{reputation}/100</strong></div><div><span>STATUS</span><strong>{reputation >= 30 ? "KNOWN" : "EARLY"}</strong></div></div>
+            <div className="market-list"><div className="market-title"><span>LIVE SPOT</span><small>via Coinbase</small></div>{markets.map(market => <div className="market-row" key={market.symbol}><b>{market.symbol}</b><span>{market.label}</span><strong>{formatPrice(market.price)}</strong><i className={market.change >= 0 ? "up" : "down"}>{market.change >= 0 ? "+" : ""}{market.change}%</i></div>)}</div>
+            <p className="phone-footnote">Spot prices are live. Your cash, positions and choices are part of the simulation.</p>
+          </>}
+          {tab === "messages" && <>
+            <span className="phone-kicker">CHATS · 3 UNREAD</span><h2>Your <em>world</em> talks.</h2>
+            <div className="chat-list"><button><span className="chat-avatar">R</span><div><strong>Rae / Alpha House</strong><p>“Don’t fade this. Meet me at 11.”</p></div><time>now</time></button><button><span className="chat-avatar builder">O</span><div><strong>Orbit Protocol</strong><p>Community operator shift is open.</p></div><time>3m</time></button><button><span className="chat-avatar degen">D</span><div><strong>Degens After Dark</strong><p>New market just dropped.</p></div><time>9m</time></button></div>
+          </>}
+          {tab === "pulse" && <>
+            <span className="phone-kicker">CITY PULSE · MARKET 04</span><h2>Pick a <em>side.</em></h2>
+            <div className="phone-card market-card"><span>PREDICTION MARKET</span><strong>Does BTC finish today above its open?</strong><div className="odds"><b>YES <i>61¢</i></b><b>NO <i>39¢</i></b></div><p>Simulation only · your choice will change your cash and story.</p><div className="split-actions"><button onClick={() => onChoice("You backed YES · $50 committed · the city is watching", -50, 2)}>BACK YES</button><button onClick={() => onChoice("You backed NO · $50 committed · contrarian energy", -50, 2)}>BACK NO</button></div></div>
+            <button className="mint-callout" onClick={() => onChoice("You saved a collection concept · Mint Studio unlocked", 0, 3)}><span>MINT STUDIO</span><strong>Have an idea worth owning?</strong><b>OPEN CONCEPTS →</b></button>
+          </>}
+          {tab === "city" && <>
+            <span className="phone-kicker">CRYPTO CITY · TONIGHT</span><h2>Be where <em>things happen.</em></h2>
+            <div className="city-list"><button onClick={() => onChoice("You RSVP’d to Founder Drinks · social access up", -35, 3)}><span>21:00</span><div><strong>Founder Drinks</strong><p>Conference Center · $35 cover</p></div><b>RSVP →</b></button><button onClick={() => onChoice("You entered the Degen District · new market access", 0, 1)}><span>23:30</span><div><strong>Degens After Dark</strong><p>Degen District · Prediction floor open</p></div><b>GO →</b></button><button><span>TMRW</span><div><strong>Protocol Hack Night</strong><p>Builder District · bounties posted</p></div><b>VIEW →</b></button></div>
+          </>}
+        </main>
+        <nav className="phone-nav" aria-label="Phone sections">{tabs.map(item => <button key={item.id} className={tab === item.id ? "active" : ""} onClick={() => setTab(item.id)} aria-current={tab === item.id ? "page" : undefined}><i>{item.icon}</i><span>{item.label}</span></button>)}</nav>
+      </section>
+    </div>
+  );
+}
+
 export default function Home() {
   const [hydrated, setHydrated] = useState(false);
   const [screen, setScreen] = useState<"signup" | "origin" | "pfp" | "world" | "map">("signup");
@@ -81,14 +140,68 @@ export default function Home() {
   const [origin, setOrigin] = useState<Origin | null>(null);
   const [pfp, setPfp] = useState<PFP | null>(null);
   const [lifeNumber, setLifeNumber] = useState<number | null>(null);
+  const [phoneOpen, setPhoneOpen] = useState(false);
+  const [phoneTab, setPhoneTab] = useState<PhoneTab>("home");
+  const [cash, setCash] = useState(1250);
+  const [reputation, setReputation] = useState(12);
+  const [needs, setNeeds] = useState({ energy: 82, hunger: 68, fun: 91 });
+  const [notice, setNotice] = useState<string | null>(null);
+  const [markets, setMarkets] = useState<MarketPrice[]>([
+    { symbol: "BTC", label: "Bitcoin", price: 0, change: 2.4 },
+    { symbol: "ETH", label: "Ethereum", price: 0, change: -0.8 },
+    { symbol: "SOL", label: "Solana", price: 0, change: 4.1 },
+  ]);
 
   useEffect(() => { setHydrated(true); }, []);
+
+  useEffect(() => {
+    const closeOnEscape = (event: KeyboardEvent) => { if (event.key === "Escape") setPhoneOpen(false); };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    const getMarkets = async () => {
+      try {
+        const responses = await Promise.all(["BTC", "ETH", "SOL"].map(symbol => fetch(`https://api.coinbase.com/v2/prices/${symbol}-USD/spot`)));
+        const payloads = await Promise.all(responses.map(response => response.json()));
+        if (!active || payloads.some(payload => !payload?.data?.amount)) return;
+        setMarkets(current => current.map((market, index) => ({ ...market, price: Number(payloads[index].data.amount) })));
+      } catch {
+        // The game remains playable when the live market feed is unavailable.
+      }
+    };
+    getMarkets();
+    const timer = window.setInterval(getMarkets, 60_000);
+    return () => { active = false; window.clearInterval(timer); };
+  }, []);
+
+  const showNotice = (message: string) => {
+    setNotice(message);
+    window.setTimeout(() => setNotice(null), 3200);
+  };
+
+  const completeHomeAction = ({ need, amount }: { need: string; amount: number }) => {
+    if (need === "CASH") {
+      setCash(current => current + amount);
+      setReputation(current => Math.min(100, current + 1));
+      showNotice(`Contract delivered · +$${amount} · reputation up`);
+      return;
+    }
+    const key = need.toLowerCase() as "energy" | "hunger" | "fun";
+    if (key in needs) setNeeds(current => ({ ...current, [key]: Math.min(100, current[key] + amount) }));
+    showNotice(`${need.toLowerCase()} restored · your day keeps moving`);
+  };
 
   const createLife = () => {
     if (!name.trim() || username.trim().length < 3) return;
     setOrigin(pick(origins));
     setPfp(pick(pfps));
     setLifeNumber(Math.floor(1000 + Math.random() * 9000));
+    setCash(1250);
+    setReputation(12);
+    setNeeds({ energy: 82, hunger: 68, fun: 91 });
     setScreen("origin");
   };
 
@@ -98,6 +211,7 @@ export default function Home() {
     setOrigin(null);
     setPfp(null);
     setLifeNumber(null);
+    setPhoneOpen(false);
     setScreen("signup");
   };
 
@@ -155,7 +269,7 @@ export default function Home() {
         <header className="game-topbar">
           <div className="brand"><span className="brand-mark">◆</span><strong>CRYPTO LIFE</strong></div>
           <div className="top-status"><span className="online-dot" /> YOUR LIFE · #{lifeNumber}</div>
-          <div className="top-profile"><PfpImage pfp={pfp} /><span>@{username}</span></div>
+          <div className="top-profile"><button className="phone-trigger" onClick={() => { setPhoneTab("home"); setPhoneOpen(true); }} aria-label="Open your phone"><span aria-hidden="true">▣</span> PHONE</button><PfpImage pfp={pfp} /><span>@{username}</span></div>
         </header>
         <section className="home-scene">
           <div className="scene-copy">
@@ -163,17 +277,19 @@ export default function Home() {
             <h1>GM, <span>{name.split(" ")[0]}.</span></h1>
             <p>You just spawned into the timeline. This is your starter home. Build your skills, earn your first serious money, then upgrade the life around you.</p>
             <div className="needs">
-              <div><span>ENERGY</span><b><i style={{ width: "82%" }} /></b></div>
-              <div><span>HUNGER</span><b><i style={{ width: "68%" }} /></b></div>
-              <div><span>FUN</span><b><i style={{ width: "91%" }} /></b></div>
+              <div><span>ENERGY</span><b><i style={{ width: `${needs.energy}%` }} /></b><small>{needs.energy}</small></div>
+              <div><span>HUNGER</span><b><i style={{ width: `${needs.hunger}%` }} /></b><small>{needs.hunger}</small></div>
+              <div><span>FUN</span><b><i style={{ width: `${needs.fun}%` }} /></b><small>{needs.fun}</small></div>
             </div>
             <div className="world-actions">
               <button className="game-button primary-game" onClick={() => setScreen("map")}>STEP INTO THE CITY <b>→</b></button>
               <button className="game-button ghost-game" onClick={() => setScreen("pfp")}>VIEW LIFE</button>
             </div>
           </div>
-          <div className="room"><CryptoRoom originName={origin.name} cash={origin.cash} /></div>
+          <div className="room"><CryptoRoom originName={origin.name} cash={origin.cash} onComplete={completeHomeAction} /></div>
         </section>
+        {notice && <div className="life-notice" role="status">{notice}</div>}
+        {phoneOpen && <Phone pfp={pfp} username={username} cash={cash} reputation={reputation} markets={markets} tab={phoneTab} setTab={setPhoneTab} close={() => setPhoneOpen(false)} onChoice={(message, cashDelta, reputationDelta) => { setCash(current => current + cashDelta); setReputation(current => Math.max(0, Math.min(100, current + reputationDelta))); showNotice(message); }} />}
       </main>
     );
   }

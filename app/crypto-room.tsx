@@ -239,13 +239,15 @@ function Scene({style,originName,cash,onAction}:{style?:RoomStyle;pfpImage?:stri
   </>;
 }
 
-export default function CryptoRoom(props:{style?:RoomStyle;originName?:string;cash?:string}) {
+export default function CryptoRoom(props:{style?:RoomStyle;originName?:string;cash?:string;onComplete?:(result:{need:string;amount:number})=>void}) {
   const [active,setActive]=useState<HomeAction|null>(null);
   const [toast,setToast]=useState<string|null>(null);
   const action=active?homeActions[active]:null;
+  const { onComplete, ...sceneProps } = props;
 
   const perform=()=>{
     if(!action)return;
+    onComplete?.({need:action.need,amount:action.amount});
     setToast(action.need==="CASH"?"+$120 earned · desk session complete":`+${action.amount} ${action.need.toLowerCase()} restored`);
     setActive(null);
     window.setTimeout(()=>setToast(null),1800);
@@ -254,7 +256,7 @@ export default function CryptoRoom(props:{style?:RoomStyle;originName?:string;ca
   return (
     <div className="crypto-room-wrap">
       <Canvas camera={{position:[5.0,5.5,12.5],fov:43}} shadows>
-        <Scene {...props} onAction={setActive}/>
+        <Scene {...sceneProps} onAction={setActive}/>
       </Canvas>
 
       <div className="home-hint">TAP HOME OBJECTS · DRAG TO LOOK · STARTER HOME</div>
