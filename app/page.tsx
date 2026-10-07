@@ -24,6 +24,13 @@ type PFP = {
 type PhoneTab = "home" | "wallet" | "messages" | "pulse" | "city";
 
 type MarketPrice = { symbol: string; label: string; price: number; change: number };
+type EventCard = { id: string; title: string; detail: string; venue: string; energy: number; cash: number; reputation: number };
+
+const dayOneEvents: EventCard[] = [
+  { id: "orbit", title: "Orbit shift", detail: "A protocol needs a calm operator for its launch room.", venue: "Builder District", energy: 12, cash: 180, reputation: 4 },
+  { id: "rae", title: "Rae has alpha", detail: "A researcher from Alpha House wants five focused minutes.", venue: "Alpha House", energy: 8, cash: 0, reputation: 3 },
+  { id: "degen", title: "After-dark market", detail: "A fresh prediction market is getting loud in Degen District.", venue: "Degen District", energy: 14, cash: -50, reputation: 2 },
+];
 
 const districts = [
   { name: "Genesis Hub", tag: "HOME", x: "48%", y: "50%" }, { name: "Builder District", tag: "BUILD", x: "24%", y: "31%" },
@@ -89,6 +96,16 @@ function CitySheet({ selected, select, close, onAction }: { selected: string; se
       <header><div><span>CRYPTO CITY · DAY 01</span><strong>Where are you going?</strong></div><button onClick={close} aria-label="Close city map">×</button></header>
       <div className="city-mini-map"><div className="map-river" /><div className="map-road r1" /><div className="map-road r2" /><div className="map-road r3" /><div className="map-road r4" />{districts.map(district => <button key={district.name} className={`district-pin ${selected === district.name ? "selected" : ""}`} style={{ left: district.x, top: district.y }} onClick={() => select(district.name)}><span>{district.tag}</span><strong>{district.name}</strong></button>)}</div>
       <div className="nearby-card"><div><span>NEARBY · ALPHA HOUSE</span><strong>Rae Imani</strong><p>Researcher · “Always knows someone who knows.”</p></div><div className="nearby-actions"><button onClick={() => onAction("You nodded at Rae · she remembers you", 1)}>NOD</button><button onClick={() => onAction("Message sent to Rae · a conversation has started", 2)}>MESSAGE</button><button onClick={() => onAction(`You headed to ${selected} · the city keeps moving`, 1)}>GO THERE →</button></div></div>
+    </section>
+  </div>;
+}
+
+function DayOne({ event, close, onCommit }: { event: EventCard; close: () => void; onCommit: () => void }) {
+  return <div className="day-overlay" role="dialog" aria-modal="true" aria-label={event.title}>
+    <section className="day-card">
+      <span>DAY 01 · {event.venue.toUpperCase()}</span><h2>{event.title}</h2><p>{event.detail}</p>
+      <div className="outcome-preview"><div><small>ENERGY</small><strong>−{event.energy}</strong></div><div><small>CASH</small><strong className={event.cash < 0 ? "negative" : ""}>{event.cash >= 0 ? "+" : ""}${event.cash}</strong></div><div><small>REPUTATION</small><strong>+{event.reputation}</strong></div></div>
+      <div className="day-actions"><button onClick={onCommit}>DO IT <b>→</b></button><button onClick={close}>NOT NOW</button></div>
     </section>
   </div>;
 }
@@ -164,13 +181,44 @@ export default function Home() {
   const [reputation, setReputation] = useState(12);
   const [needs, setNeeds] = useState({ energy: 82, hunger: 68, fun: 91 });
   const [notice, setNotice] = useState<string | null>(null);
+  const [hour, setHour] = useState(8);
+  const [rentDue, setRentDue] = useState(420);
+  const [contacts, setContacts] = useState<string[]>([]);
+  const [completedEvents, setCompletedEvents] = useState<string[]>([]);
+  const [activeEvent, setActiveEvent] = useState<EventCard | null>(null);
   const [markets, setMarkets] = useState<MarketPrice[]>([
     { symbol: "BTC", label: "Bitcoin", price: 0, change: 2.4 },
     { symbol: "ETH", label: "Ethereum", price: 0, change: -0.8 },
     { symbol: "SOL", label: "Solana", price: 0, change: 4.1 },
   ]);
 
-  useEffect(() => { setHydrated(true); }, []);
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem("crypto-life-day-one");
+      if (saved) {
+        const life = JSON.parse(saved);
+        setName(life.name ?? ""); setUsername(life.username ?? ""); setOrigin(life.origin ?? null); setPfp(life.pfp ?? null);
+        setLifeNumber(life.lifeNumber ?? null); setCash(life.cash ?? 1250); setReputation(life.reputation ?? 12); setNeeds(life.needs ?? { energy: 82, hunger: 68, fun: 91 });
+        setHour(life.hour ?? 8); setRentDue(life.rentDue ?? 420); setContacts(life.contacts ?? []); setCompletedEvents(life.completedEvents ?? []);
+        if (life.origin && life.pfp) setScreen("world");
+      }
+    } catch { window.localStorage.removeItem("crypto-life-day-one"); }
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated || screen !== "world" || !origin || !pfp) return;
+    window.localStorage.setItem("crypto-life-day-one", JSON.stringify({ name, username, origin, pfp, lifeNumber, cash, reputation, needs, hour, rentDue, contacts, completedEvents }));
+  }, [hydrated, screen, name, username, origin, pfp, lifeNumber, cash, reputation, needs, hour, rentDue, contacts, completedEvents]);
+
+  useEffect(() => {
+    if (screen !== "world") return;
+    const clock = window.setInterval(() => {
+      setHour(current => (current + 1) % 24);
+      setNeeds(current => ({ ...current, energy: Math.max(0, current.energy - 2), hunger: Math.max(0, current.hunger - 2) }));
+    }, 45_000);
+    return () => window.clearInterval(clock);
+  }, [screen]);
 
   useEffect(() => {
     const closeOnEscape = (event: KeyboardEvent) => { if (event.key === "Escape") setPhoneOpen(false); };
@@ -213,6 +261,26 @@ export default function Home() {
     showNotice(`${need.toLowerCase()} restored · your day keeps moving`);
   };
 
+  const commitEvent = () => {
+    if (!activeEvent) return;
+    const event = activeEvent;
+    if (cash + event.cash < 0) { showNotice("Not enough cash for that move yet · find a shift first"); setActiveEvent(null); return; }
+    setCash(current => current + event.cash);
+    setReputation(current => Math.min(100, current + event.reputation));
+    setNeeds(current => ({ ...current, energy: Math.max(0, current.energy - event.energy), fun: Math.min(100, current.fun + 4) }));
+    setHour(current => (current + 2) % 24);
+    setContacts(current => event.id === "rae" && !current.includes("Rae Imani") ? [...current, "Rae Imani"] : current);
+    setCompletedEvents(current => [...current, event.id]);
+    setActiveEvent(null);
+    showNotice(`${event.title} changed your day · the city noticed`);
+  };
+
+  const payRent = () => {
+    if (cash < rentDue) { showNotice("You are short on rent · pick up a shift or take a chance"); return; }
+    setCash(current => current - rentDue); setRentDue(0); setReputation(current => Math.min(100, current + 2));
+    showNotice("Rent paid · your starter apartment is safe for the week");
+  };
+
   const createLife = () => {
     if (!name.trim() || username.trim().length < 3) return;
     setOrigin(pick(origins));
@@ -221,6 +289,7 @@ export default function Home() {
     setCash(1250);
     setReputation(12);
     setNeeds({ energy: 82, hunger: 68, fun: 91 });
+    setHour(8); setRentDue(420); setContacts([]); setCompletedEvents([]);
     setScreen("origin");
   };
 
@@ -232,6 +301,7 @@ export default function Home() {
     setLifeNumber(null);
     setPhoneOpen(false);
     setMapOpen(false);
+    window.localStorage.removeItem("crypto-life-day-one");
     setScreen("signup");
   };
 
@@ -293,7 +363,7 @@ export default function Home() {
         </header>
         <section className="home-scene">
           <div className="scene-copy">
-            <span className="eyebrow">DAY 01 · 08:42 AM · GENESIS HUB</span>
+            <span className="eyebrow">DAY 01 · {String(hour).padStart(2, "0")}:00 · GENESIS HUB</span>
             <h1>GM, <span>{name.split(" ")[0]}.</span></h1>
             <p>You just spawned into the timeline. This is your starter home. Build your skills, earn your first serious money, then upgrade the life around you.</p>
             <div className="needs">
@@ -305,12 +375,19 @@ export default function Home() {
               <button className="game-button primary-game" onClick={() => setMapOpen(true)}>STEP INTO THE CITY <b>→</b></button>
               <button className="game-button ghost-game" onClick={() => setScreen("pfp")}>VIEW LIFE</button>
             </div>
+            <div className="day-queue" aria-label="Day One opportunities">
+              <div className="queue-head"><span>TODAY</span><b>{completedEvents.length}/3 MOVES MADE</b></div>
+              {dayOneEvents.filter(event => !completedEvents.includes(event.id)).slice(0, 2).map(event => <button key={event.id} onClick={() => setActiveEvent(event)}><i>{event.venue.split(" ")[0].slice(0, 2).toUpperCase()}</i><div><strong>{event.title}</strong><span>{event.detail}</span></div><b>→</b></button>)}
+              {completedEvents.length === dayOneEvents.length && <div className="queue-empty"><strong>City quiet—for now.</strong><span>You used every Day One opportunity. Sleep or check your phone for the next move.</span></div>}
+            </div>
           </div>
           <div className="room"><CryptoRoom originName={origin.name} cash={origin.cash} onComplete={completeHomeAction} /></div>
         </section>
+        <aside className="life-ledger" aria-label="Life ledger"><div><span>AVAILABLE</span><strong>${cash.toLocaleString()}</strong></div><div><span>RENT DUE</span><strong className={rentDue ? "rent-warning" : "rent-clear"}>{rentDue ? `$${rentDue}` : "PAID"}</strong></div><button onClick={payRent} disabled={!rentDue}>PAY RENT</button><p>{contacts.length ? `${contacts.join(", ")} is in your contacts.` : "Meet someone worth keeping close."}</p></aside>
         {notice && <div className="life-notice" role="status">{notice}</div>}
         {phoneOpen && <Phone pfp={pfp} username={username} cash={cash} reputation={reputation} markets={markets} tab={phoneTab} setTab={setPhoneTab} close={() => setPhoneOpen(false)} onChoice={(message, cashDelta, reputationDelta) => { setCash(current => current + cashDelta); setReputation(current => Math.max(0, Math.min(100, current + reputationDelta))); showNotice(message); }} />}
         {mapOpen && <CitySheet selected={selectedDistrict} select={setSelectedDistrict} close={() => setMapOpen(false)} onAction={(message, reputationDelta) => { setReputation(current => Math.min(100, current + reputationDelta)); setMapOpen(false); showNotice(message); }} />}
+        {activeEvent && <DayOne event={activeEvent} close={() => setActiveEvent(null)} onCommit={commitEvent} />}
       </main>
     );
   }
