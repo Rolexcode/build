@@ -475,7 +475,7 @@ export default function Home() {
           <div className="scene-copy">
             <span className="eyebrow">DAY 01 · {String(hour).padStart(2, "0")}:00 · GENESIS HUB</span>
             <h1>GM, <span>{name.split(" ")[0]}.</span></h1>
-            <p>You just spawned into the timeline. This is your starter home. Build your skills, earn your first serious money, then upgrade the life around you.</p>
+            <p>You woke up at Block 7. The street outside is already moving: walk to people, work boards and venues, then let the choices change your life.</p>
             <div className="needs">
               <div><span>ENERGY</span><b><i style={{ width: `${needs.energy}%` }} /></b><small>{needs.energy}</small></div>
               <div><span>HUNGER</span><b><i style={{ width: `${needs.hunger}%` }} /></b><small>{needs.hunger}</small></div>
@@ -483,7 +483,7 @@ export default function Home() {
               <div><span>HYGIENE</span><b><i style={{ width: `${needs.hygiene}%` }} /></b><small>{needs.hygiene}</small></div>
             </div>
             <div className="world-actions">
-              <button className="game-button primary-game" onClick={() => setMapOpen(true)}>STEP INTO THE CITY <b>→</b></button>
+              <button className="game-button primary-game" onClick={() => setMapOpen(true)}>OPEN CITY MAP <b>→</b></button>
               <button className="game-button ghost-game" onClick={() => setScreen("pfp")}>VIEW LIFE</button>
             </div>
             <button className="citywire" onClick={respondToCityWire}><span>LIVE CITYWIRE · {cityWire[newsIndex].move}</span><strong>{cityWire[newsIndex].headline}</strong><small>Fictional city event · your response affects this life →</small></button>
@@ -493,7 +493,7 @@ export default function Home() {
               {completedEvents.length === dayOneEvents.length && <div className="queue-empty"><strong>City quiet—for now.</strong><span>You used every Day One opportunity. Sleep or check your phone for the next move.</span></div>}
             </div>
           </div>
-          <div className="room"><CryptoRoom originName={origin.name} cash={origin.cash} onComplete={completeHomeAction} /></div>
+          <div className="room"><CryptoRoom originName={origin.name} cash={origin.cash} onComplete={completeHomeAction} onMeet={(npc) => { const names: Record<string, string> = { MARA: "Mara", RAE: "Rae Imani", DEX: "Dex", NIA: "Nia" }; const contact = names[npc] ?? npc; strengthenRelationship(contact, 6); setLifeLog(current => [`${String(hour).padStart(2, "0")}:00 · Talked to ${contact} in Genesis Hub`, ...current].slice(0, 4)); showNotice(`${contact} is now part of your city story · trust up`); }} /></div>
         </section>
         <aside className="life-ledger" aria-label="Life ledger"><div><span>AVAILABLE</span><strong>${cash.toLocaleString()}</strong></div><div><span>RENT DUE</span><strong className={rentDue ? "rent-warning" : "rent-clear"}>{rentDue ? `$${rentDue}` : "PAID"}</strong></div><div><span>CITY CREDIT</span><strong className={debt ? "rent-warning" : "rent-clear"}>{debt ? `$${debt}` : "CLEAR"}</strong></div><button onClick={payRent} disabled={!rentDue}>PAY RENT</button><button onClick={payDebt} disabled={!debt}>CLEAR DEBT</button><p>{contacts.length ? `${contacts.slice(-2).join(" · ")} ${contacts.length > 2 ? "and others" : ""} are in your contacts.` : "Meet someone worth keeping close."}</p>{lifeLog[0] && <small>{lifeLog[0]}</small>}</aside>
         {notice && <div className="life-notice" role="status">{notice}</div>}
