@@ -220,7 +220,7 @@ export default function Home() {
   const [phoneTab, setPhoneTab] = useState<PhoneTab>("home");
   const [cash, setCash] = useState(1250);
   const [reputation, setReputation] = useState(12);
-  const [needs, setNeeds] = useState({ energy: 82, hunger: 68, fun: 91 });
+  const [needs, setNeeds] = useState({ energy: 82, hunger: 68, fun: 91, hygiene: 74 });
   const [notice, setNotice] = useState<string | null>(null);
   const [hour, setHour] = useState(8);
   const [rentDue, setRentDue] = useState(420);
@@ -243,7 +243,7 @@ export default function Home() {
       if (saved) {
         const life = JSON.parse(saved);
         setName(life.name ?? ""); setUsername(life.username ?? ""); setOrigin(life.origin ?? null); setPfp(life.pfp ?? null);
-        setLifeNumber(life.lifeNumber ?? null); setCash(life.cash ?? 1250); setReputation(life.reputation ?? 12); setNeeds(life.needs ?? { energy: 82, hunger: 68, fun: 91 });
+        setLifeNumber(life.lifeNumber ?? null); setCash(life.cash ?? 1250); setReputation(life.reputation ?? 12); setNeeds({ energy: 82, hunger: 68, fun: 91, hygiene: 74, ...(life.needs ?? {}) });
         setHour(life.hour ?? 8); setRentDue(life.rentDue ?? 420); setDebt(life.debt ?? 0); setGadgets(life.gadgets ?? ["Genesis phone"]); setNewsIndex(life.newsIndex ?? 0); setContacts(life.contacts ?? []); setCompletedEvents(life.completedEvents ?? []); setLifeLog(life.lifeLog ?? []);
         if (life.origin && life.pfp) setScreen("world");
       }
@@ -260,7 +260,7 @@ export default function Home() {
     if (screen !== "world") return;
     const clock = window.setInterval(() => {
       setHour(current => (current + 1) % 24);
-      setNeeds(current => ({ ...current, energy: Math.max(0, current.energy - 2), hunger: Math.max(0, current.hunger - 2) }));
+      setNeeds(current => ({ ...current, energy: Math.max(0, current.energy - 2), hunger: Math.max(0, current.hunger - 2), hygiene: Math.max(0, current.hygiene - 1) }));
       setNewsIndex(current => (current + 1) % cityWire.length);
     }, 45_000);
     return () => window.clearInterval(clock);
@@ -295,15 +295,25 @@ export default function Home() {
     window.setTimeout(() => setNotice(null), 3200);
   };
 
-  const completeHomeAction = ({ need, amount }: { need: string; amount: number }) => {
+  const completeHomeAction = ({ need, amount, action }: { need: string; amount: number; action: string }) => {
+    if (action === "sleep") {
+      setNeeds(current => ({ ...current, energy: 100, hunger: Math.max(0, current.hunger - 12), fun: Math.min(100, current.fun + 5) }));
+      setHour(current => (current + 8) % 24);
+      setLifeLog(current => [`${String(hour).padStart(2, "0")}:00 · Slept at Block 7 · a new part of the city woke up`, ...current].slice(0, 4));
+      showNotice("You slept through eight hours · energy restored");
+      return;
+    }
     if (need === "CASH") {
       setCash(current => current + amount);
       setReputation(current => Math.min(100, current + 1));
+      setHour(current => (current + 2) % 24);
+      setLifeLog(current => [`${String(hour).padStart(2, "0")}:00 · Remote crypto task delivered · +$${amount}`, ...current].slice(0, 4));
       showNotice(`Contract delivered · +$${amount} · reputation up`);
       return;
     }
-    const key = need.toLowerCase() as "energy" | "hunger" | "fun";
+    const key = need.toLowerCase() as "energy" | "hunger" | "fun" | "hygiene";
     if (key in needs) setNeeds(current => ({ ...current, [key]: Math.min(100, current[key] + amount) }));
+    setHour(current => (current + 1) % 24);
     showNotice(`${need.toLowerCase()} restored · your day keeps moving`);
   };
 
@@ -379,7 +389,7 @@ export default function Home() {
     setLifeNumber(Math.floor(1000 + Math.random() * 9000));
     setCash(1250);
     setReputation(12);
-    setNeeds({ energy: 82, hunger: 68, fun: 91 });
+    setNeeds({ energy: 82, hunger: 68, fun: 91, hygiene: 74 });
     setHour(8); setRentDue(420); setContacts([]); setCompletedEvents([]); setLifeLog([]);
     setDebt(0); setGadgets(["Genesis phone"]); setNewsIndex(0);
     setScreen("origin");
@@ -463,6 +473,7 @@ export default function Home() {
               <div><span>ENERGY</span><b><i style={{ width: `${needs.energy}%` }} /></b><small>{needs.energy}</small></div>
               <div><span>HUNGER</span><b><i style={{ width: `${needs.hunger}%` }} /></b><small>{needs.hunger}</small></div>
               <div><span>FUN</span><b><i style={{ width: `${needs.fun}%` }} /></b><small>{needs.fun}</small></div>
+              <div><span>HYGIENE</span><b><i style={{ width: `${needs.hygiene}%` }} /></b><small>{needs.hygiene}</small></div>
             </div>
             <div className="world-actions">
               <button className="game-button primary-game" onClick={() => setMapOpen(true)}>STEP INTO THE CITY <b>→</b></button>

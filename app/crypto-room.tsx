@@ -247,7 +247,7 @@ function Scene({style,originName,cash,onAction}:{style?:RoomStyle;pfpImage?:stri
   </>;
 }
 
-export default function CryptoRoom(props:{style?:RoomStyle;originName?:string;cash?:string;onComplete?:(result:{need:string;amount:number})=>void}) {
+export default function CryptoRoom(props:{style?:RoomStyle;originName?:string;cash?:string;onComplete?:(result:{need:string;amount:number;action:HomeAction})=>void}) {
   const [active,setActive]=useState<HomeAction|null>(null);
   const [toast,setToast]=useState<string|null>(null);
   const action=active?homeActions[active]:null;
@@ -255,7 +255,7 @@ export default function CryptoRoom(props:{style?:RoomStyle;originName?:string;ca
 
   const perform=()=>{
     if(!action)return;
-    onComplete?.({need:action.need,amount:action.amount});
+    onComplete?.({need:action.need,amount:action.amount,action:active!});
     setToast(action.need==="CASH"?"+$120 earned · desk session complete":`+${action.amount} ${action.need.toLowerCase()} restored`);
     setActive(null);
     window.setTimeout(()=>setToast(null),1800);
