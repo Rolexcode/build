@@ -4,7 +4,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useRef, useState } from "react";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { AnimationMixer } from "three";
+import { AnimationMixer, Vector3 } from "three";
 import type { Bone, Group, Mesh, Object3D } from "three";
 
 const FURNISHED_FLAT_URL = "https://cdn.3dassets.dev/assets/38818/v1/model.glb";
@@ -56,12 +56,21 @@ function Orbit({target}:{target:[number,number,number]}) {
   return null;
 }
 
-function RealAvatar({accent}:{accent:string}) {
+function RealAvatar({accent, onNearby, touchDirection}:{accent:string; onNearby?:(action:HomeAction|null)=>void; touchDirection:string|null}) {
   const ref=useRef<Group>(null);
   const [model,setModel]=useState<any>(null);
   const mixer=useRef<AnimationMixer|null>(null);
   const bones=useRef<Record<string,Bone>>({});
   const baseRotations=useRef<Record<string,{x:number;y:number;z:number}>>({});
+  const keys=useRef<Set<string>>(new Set());
+  const { camera }=useThree();
+
+  useEffect(()=>{
+    const down=(event:KeyboardEvent)=>{ const key=event.key.toLowerCase(); if(["w","a","s","d","arrowup","arrowdown","arrowleft","arrowright"].includes(key)) { keys.current.add(key); event.preventDefault(); } };
+    const up=(event:KeyboardEvent)=>keys.current.delete(event.key.toLowerCase());
+    window.addEventListener("keydown",down); window.addEventListener("keyup",up);
+    return ()=>{window.removeEventListener("keydown",down);window.removeEventListener("keyup",up)};
+  },[]);
 
   useEffect(()=>{
     let mounted=true;
@@ -114,10 +123,28 @@ function RealAvatar({accent}:{accent:string}) {
     mixer.current?.update(delta);
 
     if(ref.current){
-      // Small, continuous motion is what separates a placed model from a
-      // character: breathing, weight shift, head movement and relaxed arms.
-      ref.current.position.y=Math.sin(t*1.35)*0.012;
-      ref.current.rotation.y=Math.sin(t*0.45)*0.026;
+      const pressed=keys.current;
+      let x=0,z=0;
+      if(pressed.has("a")||pressed.has("arrowleft")||touchDirection==="left") x-=1;
+      if(pressed.has("d")||pressed.has("arrowright")||touchDirection==="right") x+=1;
+      if(pressed.has("w")||pressed.has("arrowup")||touchDirection==="up") z-=1;
+      if(pressed.has("s")||pressed.has("arrowdown")||touchDirection==="down") z+=1;
+      const moving=x!==0||z!==0;
+      if(moving){
+        const length=Math.hypot(x,z); x/=length; z/=length;
+        ref.current.position.x=Math.max(-10.7,Math.min(-2.1,ref.current.position.x+x*delta*2.5));
+        ref.current.position.z=Math.max(-3.55,Math.min(1.25,ref.current.position.z+z*delta*2.5));
+        ref.current.rotation.y=Math.atan2(x,z)+Math.PI;
+      }
+      ref.current.position.y=Math.sin(t*(moving?6:1.35))*0.012;
+      const closest=(Object.entries(interactionPoints) as [HomeAction,[number,number]][]).reduce<{action:HomeAction|null;distance:number}>((best,[action,point])=>{
+        const distance=Math.hypot(ref.current!.position.x-point[0],ref.current!.position.z-point[1]);
+        return distance<best.distance?{action,distance}:best;
+      },{action:null,distance:Infinity});
+      onNearby?.(closest.distance<1.55?closest.action:null);
+      const target=new Vector3(ref.current.position.x+7.5,4.7,ref.current.position.z+9.5);
+      camera.position.lerp(target,Math.min(1,delta*3.4));
+      camera.lookAt(ref.current.position.x-0.8,1.15,ref.current.position.z-1.15);
     }
 
     const get=(...names:string[])=>{
@@ -205,6 +232,10 @@ function FurnishedApartment({style}:{style:RoomStyle}) {
 
 type HomeAction = "sleep" | "hygiene" | "cook" | "work" | "watch";
 
+const interactionPoints: Record<HomeAction,[number,number]> = {
+  sleep: [-8.8,-2.85], hygiene: [-2.65,-2.8], cook: [-10.45,-0.7], work: [-3.55,-0.75], watch: [-6.35,-0.45],
+};
+
 const homeActions: Record<HomeAction,{label:string;title:string;detail:string;need:string;amount:number}> = {
   sleep:{label:"BED",title:"Sleep",detail:"Recover energy and start the next part of your day.",need:"ENERGY",amount:18},
   hygiene:{label:"BATHROOM",title:"Freshen Up",detail:"Wash up before heading into the city.",need:"HYGIENE",amount:22},
@@ -231,9 +262,8 @@ function HomeHotspots({onAction}:{onAction:(action:HomeAction)=>void}) {
   </>;
 }
 
-function Scene({style,originName,cash,onAction}:{style?:RoomStyle;pfpImage?:string;originName?:string;cash?:string;onAction?:(action:HomeAction)=>void}) {
+function Scene({style,onNearby,touchDirection}:{style?:RoomStyle;onNearby?:(action:HomeAction|null)=>void;touchDirection:string|null}) {
   const sceneStyle:RoomStyle=style ?? {label:"STARTER APARTMENT",subtitle:"your first home",wall:"#eee7dc",floor:"#c8b8a6",furniture:"#4d5149",accent:"#d98b7b",luxe:false};
-  const target:[number,number,number]=[-5.3,1.02,-1.75];
 
   return <>
     <ambientLight intensity={1.05}/>
@@ -241,17 +271,25 @@ function Scene({style,originName,cash,onAction}:{style?:RoomStyle;pfpImage?:stri
     <hemisphereLight args={["#fffdf5","#87957e",1.15]}/>
     <pointLight position={[-4,3.2,2]} intensity={7} distance={12} color={sceneStyle.luxe?"#f8dca2":"#d8f0df"}/>
     <FurnishedApartment style={sceneStyle}/>
-    <RealAvatar accent={sceneStyle.accent}/>
-    {onAction && <HomeHotspots onAction={onAction}/>}
-    <Orbit target={target}/>
+    <RealAvatar accent={sceneStyle.accent} onNearby={onNearby} touchDirection={touchDirection}/>
   </>;
 }
 
 export default function CryptoRoom(props:{style?:RoomStyle;originName?:string;cash?:string;onComplete?:(result:{need:string;amount:number;action:HomeAction})=>void}) {
   const [active,setActive]=useState<HomeAction|null>(null);
+  const [nearby,setNearby]=useState<HomeAction|null>(null);
+  const [touchDirection,setTouchDirection]=useState<string|null>(null);
   const [toast,setToast]=useState<string|null>(null);
   const action=active?homeActions[active]:null;
-  const { onComplete, ...sceneProps } = props;
+  const { onComplete } = props;
+
+  useEffect(()=>{
+    const interact=(event:KeyboardEvent)=>{
+      if((event.key==="e"||event.key==="Enter") && nearby && !active){ event.preventDefault(); setActive(nearby); }
+    };
+    window.addEventListener("keydown",interact);
+    return ()=>window.removeEventListener("keydown",interact);
+  },[nearby,active]);
 
   const perform=()=>{
     if(!action)return;
@@ -264,19 +302,16 @@ export default function CryptoRoom(props:{style?:RoomStyle;originName?:string;ca
   return (
     <div className="crypto-room-wrap">
       <Canvas camera={{position:[5.0,5.5,12.5],fov:43}} shadows>
-        <Scene {...sceneProps} onAction={setActive}/>
+        <Scene onNearby={setNearby} touchDirection={touchDirection}/>
       </Canvas>
 
-      <div className="home-hint">TAP HOME OBJECTS · DRAG TO LOOK · STARTER HOME</div>
-
-      <div className="home-interactions">
-        {(["sleep","hygiene","cook","work","watch"] as HomeAction[]).map(key=>{
-          const item=homeActions[key];
-          return <button key={key} className={`home-action ${active===key?"selected":""}`} onClick={()=>setActive(key)}>
-            <span>{item.label}</span>
-            <strong>{item.title}</strong>
-          </button>;
-        })}
+      <div className="home-hint">WASD / ARROWS TO WALK · MOVE CLOSE TO OBJECTS</div>
+      {nearby && !active && <button className="proximity-prompt" onClick={()=>setActive(nearby)}><span>NEARBY · {homeActions[nearby].label}</span><strong>INTERACT: {homeActions[nearby].title} <b>↵</b></strong></button>}
+      <div className="touch-walk" aria-label="Move your character">
+        <button aria-label="Walk forward" onPointerDown={()=>setTouchDirection("up")} onPointerUp={()=>setTouchDirection(null)} onPointerLeave={()=>setTouchDirection(null)}>↑</button>
+        <button aria-label="Walk left" onPointerDown={()=>setTouchDirection("left")} onPointerUp={()=>setTouchDirection(null)} onPointerLeave={()=>setTouchDirection(null)}>←</button>
+        <button aria-label="Walk back" onPointerDown={()=>setTouchDirection("down")} onPointerUp={()=>setTouchDirection(null)} onPointerLeave={()=>setTouchDirection(null)}>↓</button>
+        <button aria-label="Walk right" onPointerDown={()=>setTouchDirection("right")} onPointerUp={()=>setTouchDirection(null)} onPointerLeave={()=>setTouchDirection(null)}>→</button>
       </div>
 
       {active&&action&&(

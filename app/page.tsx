@@ -149,9 +149,9 @@ function DayOne({ event, close, onCommit }: { event: EventCard; close: () => voi
 }
 
 function Phone({
-  pfp, username, cash, reputation, debt, gadgets, markets, tab, setTab, close, onChoice, onCredit, onBuyGadget,
+  pfp, username, cash, reputation, debt, gadgets, contacts, relationships, markets, tab, setTab, close, onChoice, onCredit, onBuyGadget,
 }: {
-  pfp: PFP; username: string; cash: number; reputation: number; debt: number; gadgets: string[]; markets: MarketPrice[]; tab: PhoneTab;
+  pfp: PFP; username: string; cash: number; reputation: number; debt: number; gadgets: string[]; contacts: string[]; relationships: Record<string, number>; markets: MarketPrice[]; tab: PhoneTab;
   setTab: (tab: PhoneTab) => void; close: () => void; onChoice: (message: string, cashDelta: number, reputationDelta: number) => void;
   onCredit: () => void; onBuyGadget: () => void;
 }) {
@@ -186,8 +186,8 @@ function Phone({
             <p className="phone-footnote">Spot prices are live. Your cash, positions and choices are part of the simulation.</p>
           </>}
           {tab === "messages" && <>
-            <span className="phone-kicker">CHATS · 3 UNREAD</span><h2>Your <em>world</em> talks.</h2>
-            <div className="chat-list"><button><span className="chat-avatar">R</span><div><strong>Rae / Alpha House</strong><p>“Don’t fade this. Meet me at 11.”</p></div><time>now</time></button><button><span className="chat-avatar builder">O</span><div><strong>Orbit Protocol</strong><p>Community operator shift is open.</p></div><time>3m</time></button><button><span className="chat-avatar degen">D</span><div><strong>Degens After Dark</strong><p>New market just dropped.</p></div><time>9m</time></button></div>
+            <span className="phone-kicker">CHATS · {contacts.length} CONTACT{contacts.length === 1 ? "" : "S"}</span><h2>Your <em>world</em> talks.</h2>
+            <div className="chat-list">{contacts.length ? contacts.map((contact, index) => <button key={contact}><span className={`chat-avatar ${index % 2 ? "builder" : "degen"}`}>{contact.slice(0, 1)}</span><div><strong>{contact}</strong><p>{relationships[contact] >= 15 ? "“You are becoming someone I can rely on.”" : "“Good meeting you. Keep moving.”"}</p></div><time>{relationships[contact] ?? 0} TRUST</time></button>) : <button><span className="chat-avatar">?</span><div><strong>No contacts yet</strong><p>Meet people in venues and make choices they remember.</p></div><time>NOW</time></button>}</div>
           </>}
           {tab === "pulse" && <>
             <span className="phone-kicker">CITY PULSE · MARKET 04</span><h2>Pick a <em>side.</em></h2>
@@ -228,6 +228,7 @@ export default function Home() {
   const [gadgets, setGadgets] = useState<string[]>(["Genesis phone"]);
   const [newsIndex, setNewsIndex] = useState(0);
   const [contacts, setContacts] = useState<string[]>([]);
+  const [relationships, setRelationships] = useState<Record<string, number>>({});
   const [completedEvents, setCompletedEvents] = useState<string[]>([]);
   const [lifeLog, setLifeLog] = useState<string[]>([]);
   const [activeEvent, setActiveEvent] = useState<EventCard | null>(null);
@@ -244,7 +245,7 @@ export default function Home() {
         const life = JSON.parse(saved);
         setName(life.name ?? ""); setUsername(life.username ?? ""); setOrigin(life.origin ?? null); setPfp(life.pfp ?? null);
         setLifeNumber(life.lifeNumber ?? null); setCash(life.cash ?? 1250); setReputation(life.reputation ?? 12); setNeeds({ energy: 82, hunger: 68, fun: 91, hygiene: 74, ...(life.needs ?? {}) });
-        setHour(life.hour ?? 8); setRentDue(life.rentDue ?? 420); setDebt(life.debt ?? 0); setGadgets(life.gadgets ?? ["Genesis phone"]); setNewsIndex(life.newsIndex ?? 0); setContacts(life.contacts ?? []); setCompletedEvents(life.completedEvents ?? []); setLifeLog(life.lifeLog ?? []);
+        setHour(life.hour ?? 8); setRentDue(life.rentDue ?? 420); setDebt(life.debt ?? 0); setGadgets(life.gadgets ?? ["Genesis phone"]); setNewsIndex(life.newsIndex ?? 0); setContacts(life.contacts ?? []); setRelationships(life.relationships ?? {}); setCompletedEvents(life.completedEvents ?? []); setLifeLog(life.lifeLog ?? []);
         if (life.origin && life.pfp) setScreen("world");
       }
     } catch { window.localStorage.removeItem("crypto-life-day-one"); }
@@ -253,8 +254,8 @@ export default function Home() {
 
   useEffect(() => {
     if (!hydrated || screen !== "world" || !origin || !pfp) return;
-    window.localStorage.setItem("crypto-life-day-one", JSON.stringify({ name, username, origin, pfp, lifeNumber, cash, reputation, needs, hour, rentDue, debt, gadgets, newsIndex, contacts, completedEvents, lifeLog }));
-  }, [hydrated, screen, name, username, origin, pfp, lifeNumber, cash, reputation, needs, hour, rentDue, debt, gadgets, newsIndex, contacts, completedEvents, lifeLog]);
+    window.localStorage.setItem("crypto-life-day-one", JSON.stringify({ name, username, origin, pfp, lifeNumber, cash, reputation, needs, hour, rentDue, debt, gadgets, newsIndex, contacts, relationships, completedEvents, lifeLog }));
+  }, [hydrated, screen, name, username, origin, pfp, lifeNumber, cash, reputation, needs, hour, rentDue, debt, gadgets, newsIndex, contacts, relationships, completedEvents, lifeLog]);
 
   useEffect(() => {
     if (screen !== "world") return;
@@ -295,6 +296,12 @@ export default function Home() {
     window.setTimeout(() => setNotice(null), 3200);
   };
 
+  const strengthenRelationship = (contact: string | undefined, points: number) => {
+    if (!contact) return;
+    setContacts(current => current.includes(contact) ? current : [...current, contact]);
+    setRelationships(current => ({ ...current, [contact]: Math.min(100, (current[contact] ?? 0) + points) }));
+  };
+
   const completeHomeAction = ({ need, amount, action }: { need: string; amount: number; action: string }) => {
     if (action === "sleep") {
       setNeeds(current => ({ ...current, energy: 100, hunger: Math.max(0, current.hunger - 12), fun: Math.min(100, current.fun + 5) }));
@@ -325,7 +332,7 @@ export default function Home() {
     setReputation(current => Math.min(100, current + choice.reputation));
     setNeeds(current => ({ ...current, energy: Math.max(0, current.energy - choice.energy), fun: Math.min(100, current.fun + 4) }));
     setHour(current => (current + 2) % 24);
-    setContacts(current => choice.contact && !current.includes(choice.contact) ? [...current, choice.contact] : current);
+    strengthenRelationship(choice.contact, 8);
     setCompletedEvents(current => [...current, event.id]);
     setLifeLog(current => [`${String(hour).padStart(2, "0")}:00 · ${choice.result}`, ...current].slice(0, 4));
     setActiveEvent(null);
@@ -364,7 +371,7 @@ export default function Home() {
     setReputation(current => Math.min(100, current + venue.reputation));
     setNeeds(current => ({ ...current, energy: Math.max(0, current.energy - 8), fun: Math.min(100, current.fun + 6) }));
     setHour(current => (current + 1) % 24);
-    setContacts(current => current.includes(venue.npc) ? current : [...current, venue.npc]);
+    strengthenRelationship(venue.npc, 5);
     if (venue.gadget) setGadgets(current => current.includes(venue.gadget!) ? current : [...current, venue.gadget!]);
     setLifeLog(current => [`${String(hour).padStart(2, "0")}:00 · Met ${venue.npc} at ${venue.name}`, ...current].slice(0, 4));
     setActiveVenue(null);
@@ -390,7 +397,7 @@ export default function Home() {
     setCash(1250);
     setReputation(12);
     setNeeds({ energy: 82, hunger: 68, fun: 91, hygiene: 74 });
-    setHour(8); setRentDue(420); setContacts([]); setCompletedEvents([]); setLifeLog([]);
+    setHour(8); setRentDue(420); setContacts([]); setRelationships({}); setCompletedEvents([]); setLifeLog([]);
     setDebt(0); setGadgets(["Genesis phone"]); setNewsIndex(0);
     setScreen("origin");
   };
@@ -490,7 +497,7 @@ export default function Home() {
         </section>
         <aside className="life-ledger" aria-label="Life ledger"><div><span>AVAILABLE</span><strong>${cash.toLocaleString()}</strong></div><div><span>RENT DUE</span><strong className={rentDue ? "rent-warning" : "rent-clear"}>{rentDue ? `$${rentDue}` : "PAID"}</strong></div><div><span>CITY CREDIT</span><strong className={debt ? "rent-warning" : "rent-clear"}>{debt ? `$${debt}` : "CLEAR"}</strong></div><button onClick={payRent} disabled={!rentDue}>PAY RENT</button><button onClick={payDebt} disabled={!debt}>CLEAR DEBT</button><p>{contacts.length ? `${contacts.slice(-2).join(" · ")} ${contacts.length > 2 ? "and others" : ""} are in your contacts.` : "Meet someone worth keeping close."}</p>{lifeLog[0] && <small>{lifeLog[0]}</small>}</aside>
         {notice && <div className="life-notice" role="status">{notice}</div>}
-        {phoneOpen && <Phone pfp={pfp} username={username} cash={cash} reputation={reputation} debt={debt} gadgets={gadgets} markets={markets} tab={phoneTab} setTab={setPhoneTab} close={() => setPhoneOpen(false)} onCredit={takeCredit} onBuyGadget={buyGadget} onChoice={(message, cashDelta, reputationDelta) => { if (cash + cashDelta < 0) { showNotice("Not enough cash for that move"); return; } setCash(current => current + cashDelta); setReputation(current => Math.max(0, Math.min(100, current + reputationDelta))); showNotice(message); }} />}
+        {phoneOpen && <Phone pfp={pfp} username={username} cash={cash} reputation={reputation} debt={debt} gadgets={gadgets} contacts={contacts} relationships={relationships} markets={markets} tab={phoneTab} setTab={setPhoneTab} close={() => setPhoneOpen(false)} onCredit={takeCredit} onBuyGadget={buyGadget} onChoice={(message, cashDelta, reputationDelta) => { if (cash + cashDelta < 0) { showNotice("Not enough cash for that move"); return; } setCash(current => current + cashDelta); setReputation(current => Math.max(0, Math.min(100, current + reputationDelta))); showNotice(message); }} />}
         {mapOpen && <CitySheet selected={selectedDistrict} select={setSelectedDistrict} close={() => setMapOpen(false)} onGo={venue => { setMapOpen(false); setActiveVenue(venue); }} />}
         {activeVenue && <VenueSheet venue={activeVenue} close={() => setActiveVenue(null)} onAction={visitVenue} />}
         {activeEvent && <DayOne event={activeEvent} close={() => setActiveEvent(null)} onCommit={commitEvent} />}
