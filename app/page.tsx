@@ -27,6 +27,7 @@ type MarketPrice = { symbol: string; label: string; price: number; change: numbe
 type EventChoice = { label: string; tone: string; energy: number; cash: number; reputation: number; contact?: string; result: string };
 type EventCard = { id: string; title: string; detail: string; venue: string; choices: EventChoice[] };
 type Venue = { district: string; name: string; type: string; npc: string; role: string; detail: string; cover: number; reward: number; reputation: number; gadget?: string };
+type CityWireItem = { headline: string; move: string; cash: number; reputation: number; result: string };
 
 const dayOneEvents: EventCard[] = [
   { id: "orbit", title: "Orbit shift", detail: "A protocol needs a calm operator for its launch room.", venue: "Builder District", choices: [
@@ -61,12 +62,12 @@ const venues: Venue[] = [
   { district: "Conference Center", name: "Founder Drinks", type: "EVENT · LAUNCH", npc: "Tomi", role: "Event host", detail: "The badge line is long, the drinks are average and the next opportunity is probably nearby.", cover: 35, reward: 90, reputation: 5, gadget: "Conference badge" },
 ];
 
-const cityWire = [
-  "ORBIT PROTOCOL opens a community bounty board.",
-  "A rare PFP changed hands at Mint Gallery — collectors are circling.",
-  "The Overhang lists a fresh prediction market before midnight.",
-  "Alpha House is hosting an off-the-record research session.",
-  "DAO Square is debating a treasury proposal with real consequences.",
+const cityWire: CityWireItem[] = [
+  { headline: "ORBIT PROTOCOL opens a community bounty board.", move: "CLAIM BOUNTY", cash: 90, reputation: 2, result: "You caught a small Orbit bounty before the room filled up" },
+  { headline: "A rare PFP changed hands at Mint Gallery — collectors are circling.", move: "COVER THE SALE", cash: 40, reputation: 3, result: "Your gallery note travelled further than expected" },
+  { headline: "The Overhang lists a fresh prediction market before midnight.", move: "POST A THESIS", cash: 0, reputation: 4, result: "Your market thesis gave the floor something to argue about" },
+  { headline: "Alpha House is hosting an off-the-record research session.", move: "ASK FOR A SEAT", cash: 0, reputation: 3, result: "Rae waved you into the research room" },
+  { headline: "DAO Square is debating a treasury proposal with real consequences.", move: "SPEAK UP", cash: 0, reputation: 3, result: "Your governance point made the delegate notes" },
 ];
 
 const origins: Origin[] = [
@@ -360,6 +361,17 @@ export default function Home() {
     showNotice(`You spent time at ${venue.name} · ${venue.npc} is now a contact`);
   };
 
+  const respondToCityWire = () => {
+    const item = cityWire[newsIndex];
+    if (cash + item.cash < 0) { showNotice("You need more cash before making that move"); return; }
+    setCash(current => current + item.cash);
+    setReputation(current => Math.min(100, current + item.reputation));
+    setNeeds(current => ({ ...current, energy: Math.max(0, current.energy - 5) }));
+    setLifeLog(current => [`${String(hour).padStart(2, "0")}:00 · ${item.result}`, ...current].slice(0, 4));
+    setNewsIndex(current => (current + 1) % cityWire.length);
+    showNotice(`${item.result} · +${item.reputation} reputation`);
+  };
+
   const createLife = () => {
     if (!name.trim() || username.trim().length < 3) return;
     setOrigin(pick(origins));
@@ -456,7 +468,7 @@ export default function Home() {
               <button className="game-button primary-game" onClick={() => setMapOpen(true)}>STEP INTO THE CITY <b>→</b></button>
               <button className="game-button ghost-game" onClick={() => setScreen("pfp")}>VIEW LIFE</button>
             </div>
-            <div className="citywire"><span>LIVE CITYWIRE</span><strong>{cityWire[newsIndex]}</strong><small>Fictional city events · live spot prices above</small></div>
+            <button className="citywire" onClick={respondToCityWire}><span>LIVE CITYWIRE · {cityWire[newsIndex].move}</span><strong>{cityWire[newsIndex].headline}</strong><small>Fictional city event · your response affects this life →</small></button>
             <div className="day-queue" aria-label="Day One opportunities">
               <div className="queue-head"><span>TODAY</span><b>{completedEvents.length}/3 MOVES MADE</b></div>
               {dayOneEvents.filter(event => !completedEvents.includes(event.id)).slice(0, 2).map(event => <button key={event.id} onClick={() => setActiveEvent(event)}><i>{event.venue.split(" ")[0].slice(0, 2).toUpperCase()}</i><div><strong>{event.title}</strong><span>{event.detail}</span></div><b>→</b></button>)}
@@ -465,7 +477,7 @@ export default function Home() {
           </div>
           <div className="room"><CryptoRoom originName={origin.name} cash={origin.cash} onComplete={completeHomeAction} /></div>
         </section>
-        <aside className="life-ledger" aria-label="Life ledger"><div><span>AVAILABLE</span><strong>${cash.toLocaleString()}</strong></div><div><span>RENT DUE</span><strong className={rentDue ? "rent-warning" : "rent-clear"}>{rentDue ? `$${rentDue}` : "PAID"}</strong></div><div><span>CITY CREDIT</span><strong className={debt ? "rent-warning" : "rent-clear"}>{debt ? `$${debt}` : "CLEAR"}</strong></div><button onClick={rentDue ? payRent : payDebt} disabled={!rentDue && !debt}>{rentDue ? "PAY RENT" : debt ? "CLEAR DEBT" : "ALL CLEAR"}</button><p>{contacts.length ? `${contacts.slice(-2).join(" · ")} ${contacts.length > 2 ? "and others" : ""} are in your contacts.` : "Meet someone worth keeping close."}</p>{lifeLog[0] && <small>{lifeLog[0]}</small>}</aside>
+        <aside className="life-ledger" aria-label="Life ledger"><div><span>AVAILABLE</span><strong>${cash.toLocaleString()}</strong></div><div><span>RENT DUE</span><strong className={rentDue ? "rent-warning" : "rent-clear"}>{rentDue ? `$${rentDue}` : "PAID"}</strong></div><div><span>CITY CREDIT</span><strong className={debt ? "rent-warning" : "rent-clear"}>{debt ? `$${debt}` : "CLEAR"}</strong></div><button onClick={payRent} disabled={!rentDue}>PAY RENT</button><button onClick={payDebt} disabled={!debt}>CLEAR DEBT</button><p>{contacts.length ? `${contacts.slice(-2).join(" · ")} ${contacts.length > 2 ? "and others" : ""} are in your contacts.` : "Meet someone worth keeping close."}</p>{lifeLog[0] && <small>{lifeLog[0]}</small>}</aside>
         {notice && <div className="life-notice" role="status">{notice}</div>}
         {phoneOpen && <Phone pfp={pfp} username={username} cash={cash} reputation={reputation} debt={debt} gadgets={gadgets} markets={markets} tab={phoneTab} setTab={setPhoneTab} close={() => setPhoneOpen(false)} onCredit={takeCredit} onBuyGadget={buyGadget} onChoice={(message, cashDelta, reputationDelta) => { if (cash + cashDelta < 0) { showNotice("Not enough cash for that move"); return; } setCash(current => current + cashDelta); setReputation(current => Math.max(0, Math.min(100, current + reputationDelta))); showNotice(message); }} />}
         {mapOpen && <CitySheet selected={selectedDistrict} select={setSelectedDistrict} close={() => setMapOpen(false)} onGo={venue => { setMapOpen(false); setActiveVenue(venue); }} />}
