@@ -24,12 +24,22 @@ type PFP = {
 type PhoneTab = "home" | "wallet" | "messages" | "pulse" | "city";
 
 type MarketPrice = { symbol: string; label: string; price: number; change: number };
-type EventCard = { id: string; title: string; detail: string; venue: string; energy: number; cash: number; reputation: number };
+type EventChoice = { label: string; tone: string; energy: number; cash: number; reputation: number; contact?: string; result: string };
+type EventCard = { id: string; title: string; detail: string; venue: string; choices: EventChoice[] };
 
 const dayOneEvents: EventCard[] = [
-  { id: "orbit", title: "Orbit shift", detail: "A protocol needs a calm operator for its launch room.", venue: "Builder District", energy: 12, cash: 180, reputation: 4 },
-  { id: "rae", title: "Rae has alpha", detail: "A researcher from Alpha House wants five focused minutes.", venue: "Alpha House", energy: 8, cash: 0, reputation: 3 },
-  { id: "degen", title: "After-dark market", detail: "A fresh prediction market is getting loud in Degen District.", venue: "Degen District", energy: 14, cash: -50, reputation: 2 },
+  { id: "orbit", title: "Orbit shift", detail: "A protocol needs a calm operator for its launch room.", venue: "Builder District", choices: [
+    { label: "RUN THE ROOM", tone: "Reliable money. The team remembers.", energy: 12, cash: 180, reputation: 4, contact: "Orbit Protocol", result: "Launch room held together · Orbit saved your contact" },
+    { label: "PITCH A BOLD IDEA", tone: "No guaranteed payout. Bigger upside.", energy: 18, cash: 70, reputation: 8, contact: "Mara / Orbit", result: "Your idea landed · Mara wants to hear more" },
+  ] },
+  { id: "rae", title: "Rae has alpha", detail: "A researcher from Alpha House wants five focused minutes.", venue: "Alpha House", choices: [
+    { label: "LISTEN", tone: "Slow trust. Clean information.", energy: 8, cash: 0, reputation: 4, contact: "Rae Imani", result: "Rae clocked your patience · new contact added" },
+    { label: "BRING A TAKE", tone: "Risk being wrong to be memorable.", energy: 11, cash: 0, reputation: 7, contact: "Rae Imani", result: "Rae disagreed—but respected the conviction" },
+  ] },
+  { id: "degen", title: "After-dark market", detail: "A fresh prediction market is getting loud in Degen District.", venue: "Degen District", choices: [
+    { label: "PLAY SMALL", tone: "Risk $50. Keep your head.", energy: 10, cash: -50, reputation: 3, result: "You took a measured position · still in the game" },
+    { label: "MAKE A CALL", tone: "Risk $150. Be right loudly.", energy: 16, cash: -150, reputation: 9, contact: "Degen Desk", result: "Your call has the room talking · Degen Desk noticed" },
+  ] },
 ];
 
 const districts = [
@@ -100,12 +110,12 @@ function CitySheet({ selected, select, close, onAction }: { selected: string; se
   </div>;
 }
 
-function DayOne({ event, close, onCommit }: { event: EventCard; close: () => void; onCommit: () => void }) {
+function DayOne({ event, close, onCommit }: { event: EventCard; close: () => void; onCommit: (choice: EventChoice) => void }) {
   return <div className="day-overlay" role="dialog" aria-modal="true" aria-label={event.title}>
     <section className="day-card">
       <span>DAY 01 · {event.venue.toUpperCase()}</span><h2>{event.title}</h2><p>{event.detail}</p>
-      <div className="outcome-preview"><div><small>ENERGY</small><strong>−{event.energy}</strong></div><div><small>CASH</small><strong className={event.cash < 0 ? "negative" : ""}>{event.cash >= 0 ? "+" : ""}${event.cash}</strong></div><div><small>REPUTATION</small><strong>+{event.reputation}</strong></div></div>
-      <div className="day-actions"><button onClick={onCommit}>DO IT <b>→</b></button><button onClick={close}>NOT NOW</button></div>
+      <div className="choice-stack">{event.choices.map(choice => <button key={choice.label} onClick={() => onCommit(choice)}><div><strong>{choice.label}</strong><span>{choice.tone}</span></div><aside><b className={choice.cash < 0 ? "negative" : ""}>{choice.cash >= 0 ? "+" : ""}${choice.cash}</b><i>+{choice.reputation} REP</i></aside></button>)}</div>
+      <button className="not-now" onClick={close}>NOT NOW</button>
     </section>
   </div>;
 }
@@ -185,6 +195,7 @@ export default function Home() {
   const [rentDue, setRentDue] = useState(420);
   const [contacts, setContacts] = useState<string[]>([]);
   const [completedEvents, setCompletedEvents] = useState<string[]>([]);
+  const [lifeLog, setLifeLog] = useState<string[]>([]);
   const [activeEvent, setActiveEvent] = useState<EventCard | null>(null);
   const [markets, setMarkets] = useState<MarketPrice[]>([
     { symbol: "BTC", label: "Bitcoin", price: 0, change: 2.4 },
@@ -199,7 +210,7 @@ export default function Home() {
         const life = JSON.parse(saved);
         setName(life.name ?? ""); setUsername(life.username ?? ""); setOrigin(life.origin ?? null); setPfp(life.pfp ?? null);
         setLifeNumber(life.lifeNumber ?? null); setCash(life.cash ?? 1250); setReputation(life.reputation ?? 12); setNeeds(life.needs ?? { energy: 82, hunger: 68, fun: 91 });
-        setHour(life.hour ?? 8); setRentDue(life.rentDue ?? 420); setContacts(life.contacts ?? []); setCompletedEvents(life.completedEvents ?? []);
+        setHour(life.hour ?? 8); setRentDue(life.rentDue ?? 420); setContacts(life.contacts ?? []); setCompletedEvents(life.completedEvents ?? []); setLifeLog(life.lifeLog ?? []);
         if (life.origin && life.pfp) setScreen("world");
       }
     } catch { window.localStorage.removeItem("crypto-life-day-one"); }
@@ -208,8 +219,8 @@ export default function Home() {
 
   useEffect(() => {
     if (!hydrated || screen !== "world" || !origin || !pfp) return;
-    window.localStorage.setItem("crypto-life-day-one", JSON.stringify({ name, username, origin, pfp, lifeNumber, cash, reputation, needs, hour, rentDue, contacts, completedEvents }));
-  }, [hydrated, screen, name, username, origin, pfp, lifeNumber, cash, reputation, needs, hour, rentDue, contacts, completedEvents]);
+    window.localStorage.setItem("crypto-life-day-one", JSON.stringify({ name, username, origin, pfp, lifeNumber, cash, reputation, needs, hour, rentDue, contacts, completedEvents, lifeLog }));
+  }, [hydrated, screen, name, username, origin, pfp, lifeNumber, cash, reputation, needs, hour, rentDue, contacts, completedEvents, lifeLog]);
 
   useEffect(() => {
     if (screen !== "world") return;
@@ -261,18 +272,19 @@ export default function Home() {
     showNotice(`${need.toLowerCase()} restored · your day keeps moving`);
   };
 
-  const commitEvent = () => {
+  const commitEvent = (choice: EventChoice) => {
     if (!activeEvent) return;
     const event = activeEvent;
-    if (cash + event.cash < 0) { showNotice("Not enough cash for that move yet · find a shift first"); setActiveEvent(null); return; }
-    setCash(current => current + event.cash);
-    setReputation(current => Math.min(100, current + event.reputation));
-    setNeeds(current => ({ ...current, energy: Math.max(0, current.energy - event.energy), fun: Math.min(100, current.fun + 4) }));
+    if (cash + choice.cash < 0) { showNotice("Not enough cash for that move yet · find a shift first"); setActiveEvent(null); return; }
+    setCash(current => current + choice.cash);
+    setReputation(current => Math.min(100, current + choice.reputation));
+    setNeeds(current => ({ ...current, energy: Math.max(0, current.energy - choice.energy), fun: Math.min(100, current.fun + 4) }));
     setHour(current => (current + 2) % 24);
-    setContacts(current => event.id === "rae" && !current.includes("Rae Imani") ? [...current, "Rae Imani"] : current);
+    setContacts(current => choice.contact && !current.includes(choice.contact) ? [...current, choice.contact] : current);
     setCompletedEvents(current => [...current, event.id]);
+    setLifeLog(current => [`${String(hour).padStart(2, "0")}:00 · ${choice.result}`, ...current].slice(0, 4));
     setActiveEvent(null);
-    showNotice(`${event.title} changed your day · the city noticed`);
+    showNotice(`${choice.result} · the city noticed`);
   };
 
   const payRent = () => {
@@ -289,7 +301,7 @@ export default function Home() {
     setCash(1250);
     setReputation(12);
     setNeeds({ energy: 82, hunger: 68, fun: 91 });
-    setHour(8); setRentDue(420); setContacts([]); setCompletedEvents([]);
+    setHour(8); setRentDue(420); setContacts([]); setCompletedEvents([]); setLifeLog([]);
     setScreen("origin");
   };
 
@@ -383,7 +395,7 @@ export default function Home() {
           </div>
           <div className="room"><CryptoRoom originName={origin.name} cash={origin.cash} onComplete={completeHomeAction} /></div>
         </section>
-        <aside className="life-ledger" aria-label="Life ledger"><div><span>AVAILABLE</span><strong>${cash.toLocaleString()}</strong></div><div><span>RENT DUE</span><strong className={rentDue ? "rent-warning" : "rent-clear"}>{rentDue ? `$${rentDue}` : "PAID"}</strong></div><button onClick={payRent} disabled={!rentDue}>PAY RENT</button><p>{contacts.length ? `${contacts.join(", ")} is in your contacts.` : "Meet someone worth keeping close."}</p></aside>
+        <aside className="life-ledger" aria-label="Life ledger"><div><span>AVAILABLE</span><strong>${cash.toLocaleString()}</strong></div><div><span>RENT DUE</span><strong className={rentDue ? "rent-warning" : "rent-clear"}>{rentDue ? `$${rentDue}` : "PAID"}</strong></div><button onClick={payRent} disabled={!rentDue}>PAY RENT</button><p>{contacts.length ? `${contacts.join(", ")} is in your contacts.` : "Meet someone worth keeping close."}</p>{lifeLog[0] && <small>{lifeLog[0]}</small>}</aside>
         {notice && <div className="life-notice" role="status">{notice}</div>}
         {phoneOpen && <Phone pfp={pfp} username={username} cash={cash} reputation={reputation} markets={markets} tab={phoneTab} setTab={setPhoneTab} close={() => setPhoneOpen(false)} onChoice={(message, cashDelta, reputationDelta) => { setCash(current => current + cashDelta); setReputation(current => Math.max(0, Math.min(100, current + reputationDelta))); showNotice(message); }} />}
         {mapOpen && <CitySheet selected={selectedDistrict} select={setSelectedDistrict} close={() => setMapOpen(false)} onAction={(message, reputationDelta) => { setReputation(current => Math.min(100, current + reputationDelta)); setMapOpen(false); showNotice(message); }} />}
