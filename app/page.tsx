@@ -154,6 +154,7 @@ function PfpImage({ pfp, className = "" }: { pfp: PFP; className?: string }) {
     alt={pfp.name}
     loading="eager"
     decoding="async"
+    onError={() => setSource(fallback)}
   />;
 }
 
