@@ -1,7 +1,7 @@
 "use client";
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Vector3 } from "three";
 import type { Group } from "three";
 
@@ -171,10 +171,11 @@ function Player({accent,onNearby,touchDirection}:{accent:string;onNearby:(target
       }
     };
     const up=(event:KeyboardEvent)=>keys.current.delete(event.key.toLowerCase());
+    const blur=()=>keys.current.clear();
     window.addEventListener("keydown",down);
     window.addEventListener("keyup",up);
-    window.addEventListener("blur",()=>keys.current.clear());
-    return ()=>{window.removeEventListener("keydown",down);window.removeEventListener("keyup",up);};
+    window.addEventListener("blur",blur);
+    return ()=>{window.removeEventListener("keydown",down);window.removeEventListener("keyup",up);window.removeEventListener("blur",blur);};
   },[]);
 
   useFrame(({clock},delta)=>{
