@@ -153,7 +153,7 @@ function StarterApartment() {
     <Box position={[0, 0.04, 5.72]} size={[2.2, 0.08, 0.22]} color="#8c6c4b" />
   </>;
 }
-function Player({accent,onNearby,touchDirection}:{accent:string;onNearby:(target:Target|null)=>void;touchDirection:string|null}) {
+function Player({accent,onNearby,touchDirection}:{accent:string;onNearby:(target:Target|null)=>void;touchDirection:{x:number;z:number}|null}) {
   const ref=useRef<Group>(null);
   const keys=useRef<Set<string>>(new Set());
   const {camera}=useThree();
@@ -165,12 +165,15 @@ function Player({accent,onNearby,touchDirection}:{accent:string;onNearby:(target
   useFrame(({clock},delta)=>{
     if(!ref.current)return;
     let x=0,z=0;const pressed=keys.current;
-    if(pressed.has("a")||pressed.has("arrowleft")||touchDirection==="left")x-=1;if(pressed.has("d")||pressed.has("arrowright")||touchDirection==="right")x+=1;if(pressed.has("w")||pressed.has("arrowup")||touchDirection==="up")z-=1;if(pressed.has("s")||pressed.has("arrowdown")||touchDirection==="down")z+=1;
-    const moving=x!==0||z!==0;if(moving){const length=Math.hypot(x,z);x/=length;z/=length;ref.current.position.x=Math.max(-10.3,Math.min(10.3,ref.current.position.x+x*delta*3.2));ref.current.position.z=Math.max(-4.65,Math.min(5.05,ref.current.position.z+z*delta*3.2));ref.current.rotation.y=Math.atan2(x,z)+Math.PI;}
+    if(pressed.has("a")||pressed.has("arrowleft"))x-=1;if(pressed.has("d")||pressed.has("arrowright"))x+=1;if(pressed.has("w")||pressed.has("arrowup"))z-=1;if(pressed.has("s")||pressed.has("arrowdown"))z+=1;
+     if(touchDirection){x+=touchDirection.x;z+=touchDirection.z;}
+    const moving=x!==0||z!==0;if(moving){const length=Math.hypot(x,z);x/=length;z/=length;ref.current.position.x=Math.max(-6.65,Math.min(6.65,ref.current.position.x+x*delta*3.2));ref.current.position.z=Math.max(-4.65,Math.min(5.05,ref.current.position.z+z*delta*3.2));ref.current.rotation.y=Math.atan2(x,z)+Math.PI;}
     ref.current.position.y=Math.sin(clock.elapsedTime*(moving?8:1.6))*.025;
     const closest=worldTargets.reduce<{target:Target|null;distance:number}>((best,target)=>{const distance=Math.hypot(ref.current!.position.x-target.position[0],ref.current!.position.z-target.position[1]);return distance<best.distance?{target,distance}:best;},{target:null,distance:Infinity});
     onNearby(closest.distance<2.1?closest.target:null);
-    camera.position.lerp(new Vector3(ref.current.position.x+7.8,7.4,ref.current.position.z+10.2),Math.min(1,delta*3));camera.lookAt(ref.current.position.x,0.9,ref.current.position.z-1.2);
+    const mobile=typeof window!=="undefined"&&window.innerWidth<700;
+     camera.position.lerp(new Vector3(ref.current.position.x+(mobile?10.5:8.8),mobile?10.5:8.2,ref.current.position.z+(mobile?14.5:11.8)),Math.min(1,delta*2.2));
+     camera.lookAt(ref.current.position.x,0.7,ref.current.position.z-1.05);
   });
   return <group ref={ref} position={[-.2,0,3.8]}>
     <mesh position={[0,1.16,.03]} castShadow><sphereGeometry args={[.34,20,18]}/><meshStandardMaterial color="#c78a68" roughness={.9}/></mesh>
@@ -197,7 +200,7 @@ function Scene({style,onNearby,touchDirection}:{style?:RoomStyle;onNearby:(targe
 export default function CryptoRoom(props:{style?:RoomStyle;originName?:string;cash?:string;onComplete?:(result:{need:string;amount:number;action:HomeAction})=>void;onMeet?:(npc:string)=>void}) {
   const [active,setActive]=useState<Interaction|null>(null);
   const [nearby,setNearby]=useState<Target|null>(null);
-  const [touchDirection,setTouchDirection]=useState<string|null>(null);
+  const [touchDirection,setTouchDirection]=useState<{x:number;z:number}|null>(null);
   const [toast,setToast]=useState<string|null>(null);
   const action=active && isHomeAction(active)?homeActions[active]:null;
   const target=active?worldTargets.find(item=>item.id===active):null;
@@ -220,19 +223,21 @@ export default function CryptoRoom(props:{style?:RoomStyle;originName?:string;ca
 
   return (
     <div className="crypto-room-wrap">
-      <Canvas camera={{position:[5.0,5.5,12.5],fov:43}} shadows>
+      <Canvas camera={{position:[8.5,9,15],fov:48}} dpr={[1,1.5]} gl={{antialias:false,powerPreference:"low-power"}} shadows>
         <Scene onNearby={setNearby} touchDirection={touchDirection}/>
       </Canvas>
 
       <div className="home-hint">YOUR APARTMENT · WALK UP TO OBJECTS TO LIVE, WORK AND RECOVER</div>
       <div className="city-world-label"><span>YOUR FIRST HOME</span><strong>STARTER APARTMENT · GENESIS HUB</strong></div>
       {nearby && !active && <button className="proximity-prompt" onClick={()=>setActive(nearby.id)}><span>NEARBY · {nearby.label}</span><strong>{nearby.kind === "person" ? "TALK" : "INTERACT"}: {nearby.title} <b>↵</b></strong></button>}
-      <div className="touch-walk" aria-label="Move your character">
-        <button aria-label="Walk forward" onPointerDown={()=>setTouchDirection("up")} onPointerUp={()=>setTouchDirection(null)} onPointerLeave={()=>setTouchDirection(null)}>↑</button>
-        <button aria-label="Walk left" onPointerDown={()=>setTouchDirection("left")} onPointerUp={()=>setTouchDirection(null)} onPointerLeave={()=>setTouchDirection(null)}>←</button>
-        <button aria-label="Walk back" onPointerDown={()=>setTouchDirection("down")} onPointerUp={()=>setTouchDirection(null)} onPointerLeave={()=>setTouchDirection(null)}>↓</button>
-        <button aria-label="Walk right" onPointerDown={()=>setTouchDirection("right")} onPointerUp={()=>setTouchDirection(null)} onPointerLeave={()=>setTouchDirection(null)}>→</button>
-      </div>
+      <div
+        className="touch-joystick"
+        aria-label="Move your character with the joystick"
+        onPointerDown={(event)=>{event.currentTarget.setPointerCapture(event.pointerId);const rect=event.currentTarget.getBoundingClientRect();const dx=(event.clientX-(rect.left+rect.width/2))/(rect.width*0.34);const dz=(event.clientY-(rect.top+rect.height/2))/(rect.height*0.34);const length=Math.hypot(dx,dz)||1;setTouchDirection({x:Math.max(-1,Math.min(1,dx/Math.max(1,length))),z:Math.max(-1,Math.min(1,dz/Math.max(1,length)))});}}
+        onPointerMove={(event)=>{if(event.buttons===0)return;const rect=event.currentTarget.getBoundingClientRect();const dx=(event.clientX-(rect.left+rect.width/2))/(rect.width*0.34);const dz=(event.clientY-(rect.top+rect.height/2))/(rect.height*0.34);const length=Math.hypot(dx,dz)||1;setTouchDirection({x:Math.max(-1,Math.min(1,dx/Math.max(1,length))),z:Math.max(-1,Math.min(1,dz/Math.max(1,length)))});}}
+        onPointerUp={()=>setTouchDirection(null)}
+        onPointerCancel={()=>setTouchDirection(null)}
+      ><span className="joystick-ring"><i /></span><small>MOVE</small></div>
 
       {active&&target&&(
         <div className="home-action-modal">
