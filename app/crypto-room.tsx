@@ -144,6 +144,11 @@ function StarterApartment() {
     <mesh position={[-6.55, 0.86, 0.25]}><sphereGeometry args={[0.48, 12, 10]} /><meshStandardMaterial color="#5d795d" roughness={0.95} /></mesh>
     <Box position={[2.6, 0.5, 0.45]} size={[0.8, 0.95, 0.62]} color="#b9a183" />
     <Box position={[2.6, 1.02, 0.45]} size={[0.85, 0.08, 0.66]} color="#d5c3a4" />
+    {/* Neighbours give the home a little life; each has a matching interaction target. */}
+    <Citizen position={[2.1,0.6]} color="#e36e91" hair="#30242b" scale={0.94} />
+    <Citizen position={[-1.8,0.7]} color="#7b82d9" hair="#342924" scale={0.9} />
+    <Citizen position={[2.5,-1.1]} color="#ef8d42" hair="#3f3025" scale={0.96} />
+    <Citizen position={[-2.2,-1.2]} color="#6eb6a5" hair="#241f20" scale={0.9} />
     {/* A subtle entrance threshold. */}
     <Box position={[0, 0.04, 5.72]} size={[2.2, 0.08, 0.22]} color="#8c6c4b" />
   </>;
