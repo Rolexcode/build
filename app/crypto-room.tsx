@@ -160,6 +160,7 @@ function Player({accent,onNearby,touchDirection}:{accent:string;onNearby:(target
   const leftLeg=useRef<Group>(null);
   const rightLeg=useRef<Group>(null);
   const keys=useRef<Set<string>>(new Set());
+  const nearbyId=useRef<Interaction|null>(null);
   const {camera}=useThree();
 
   useEffect(()=>{
@@ -207,7 +208,14 @@ function Player({accent,onNearby,touchDirection}:{accent:string;onNearby:(target
       const distance=Math.hypot(ref.current!.position.x-target.position[0],ref.current!.position.z-target.position[1]);
       return distance<best.distance?{target,distance}:best;
     },{target:null,distance:Infinity});
-    onNearby(closest.distance<2.1?closest.target:null);
+    const nextNearby=closest.distance<2.1?closest.target:null;
+    const nextNearbyId=nextNearby?.id ?? null;
+    // Avoid forcing a React render every animation frame while the player
+    // remains near the same object. Only notify when the nearby target changes.
+    if(nearbyId.current!==nextNearbyId){
+      nearbyId.current=nextNearbyId;
+      onNearby(nextNearby);
+    }
 
     const touch=typeof window!=="undefined"&&(navigator.maxTouchPoints>0||"ontouchstart" in window);
     const mobile=touch||window.innerWidth<700;
@@ -301,11 +309,11 @@ export default function CryptoRoom(props:{style?:RoomStyle;originName?:string;ca
 
   return (
     <div className="crypto-room-wrap">
-      <Canvas camera={{position:[8.5,9,15],fov:44}} dpr={[1,1.5]} gl={{antialias:false,powerPreference:"low-power"}} shadows>
+      <Canvas camera={{position:[8.5,9,15],fov:44}} dpr={[1,1.25]} gl={{antialias:false,powerPreference:"low-power"}} shadows>
         <Scene onNearby={setNearby} touchDirection={touchDirection}/>
       </Canvas>
 
-      <div className="home-hint">YOUR APARTMENT · WALK UP TO OBJECTS TO LIVE, WORK AND RECOVER</div>
+      <div className="home-hint">MOVE: WASD / ARROWS · PHONE: D-PAD · WALK TO OBJECTS, THEN INTERACT</div>
       <div className="city-world-label"><span>YOUR FIRST HOME</span><strong>STARTER APARTMENT · GENESIS HUB</strong></div>
       {nearby && !active && <button className="proximity-prompt" onClick={()=>setActive(nearby.id)}><span>NEARBY · {nearby.label}</span><strong>{nearby.kind === "person" ? "TALK" : "INTERACT"}: {nearby.title} <b>↵</b></strong></button>}
       <div className="mobile-dpad" aria-label="Character movement controls">
