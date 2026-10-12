@@ -195,7 +195,7 @@ function Player({accent,onNearby,touchDirection}:{accent:string;onNearby:(target
   </group>;
 }
 
-function Scene({style,onNearby,touchDirection}:{style?:RoomStyle;onNearby:(target:Target|null)=>void;touchDirection:string|null}) {
+function Scene({style,onNearby,touchDirection}:{style?:RoomStyle;onNearby:(target:Target|null)=>void;touchDirection:{x:number;z:number}|null}) {
   const sceneStyle:RoomStyle=style ?? {label:"STARTER APARTMENT",subtitle:"your first home",wall:"#eee7dc",floor:"#c8b8a6",furniture:"#4d5149",accent:"#d98b7b",luxe:false};
 
   return <>
