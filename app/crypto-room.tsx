@@ -155,46 +155,113 @@ function StarterApartment() {
 }
 function Player({accent,onNearby,touchDirection}:{accent:string;onNearby:(target:Target|null)=>void;touchDirection:{x:number;z:number}|null}) {
   const ref=useRef<Group>(null);
+  const leftArm=useRef<Group>(null);
+  const rightArm=useRef<Group>(null);
+  const leftLeg=useRef<Group>(null);
+  const rightLeg=useRef<Group>(null);
   const keys=useRef<Set<string>>(new Set());
   const {camera}=useThree();
+
   useEffect(()=>{
-    const down=(event:KeyboardEvent)=>{const key=event.key.toLowerCase();if(["w","a","s","d","arrowup","arrowdown","arrowleft","arrowright"].includes(key)){keys.current.add(key);event.preventDefault();}};
+    const down=(event:KeyboardEvent)=>{
+      const key=event.key.toLowerCase();
+      if(["w","a","s","d","arrowup","arrowdown","arrowleft","arrowright"].includes(key)){
+        keys.current.add(key);
+        event.preventDefault();
+      }
+    };
     const up=(event:KeyboardEvent)=>keys.current.delete(event.key.toLowerCase());
-    window.addEventListener("keydown",down);window.addEventListener("keyup",up);return()=>{window.removeEventListener("keydown",down);window.removeEventListener("keyup",up)};
+    window.addEventListener("keydown",down);
+    window.addEventListener("keyup",up);
+    window.addEventListener("blur",()=>keys.current.clear());
+    return ()=>{window.removeEventListener("keydown",down);window.removeEventListener("keyup",up);};
   },[]);
+
   useFrame(({clock},delta)=>{
     if(!ref.current)return;
-    let x=0,z=0;const pressed=keys.current;
-    if(pressed.has("a")||pressed.has("arrowleft"))x-=1;if(pressed.has("d")||pressed.has("arrowright"))x+=1;if(pressed.has("w")||pressed.has("arrowup"))z-=1;if(pressed.has("s")||pressed.has("arrowdown"))z+=1;
-     if(touchDirection){x+=touchDirection.x;z+=touchDirection.z;}
-    const moving=x!==0||z!==0;if(moving){const length=Math.hypot(x,z);x/=length;z/=length;ref.current.position.x=Math.max(-6.65,Math.min(6.65,ref.current.position.x+x*delta*3.2));ref.current.position.z=Math.max(-4.65,Math.min(5.05,ref.current.position.z+z*delta*3.2));ref.current.rotation.y=Math.atan2(x,z)+Math.PI;}
-    ref.current.position.y=Math.sin(clock.elapsedTime*(moving?8:1.6))*.025;
-    const closest=worldTargets.reduce<{target:Target|null;distance:number}>((best,target)=>{const distance=Math.hypot(ref.current!.position.x-target.position[0],ref.current!.position.z-target.position[1]);return distance<best.distance?{target,distance}:best;},{target:null,distance:Infinity});
+    let x=0,z=0;
+    const pressed=keys.current;
+    if(pressed.has("a")||pressed.has("arrowleft"))x-=1;
+    if(pressed.has("d")||pressed.has("arrowright"))x+=1;
+    if(pressed.has("w")||pressed.has("arrowup"))z-=1;
+    if(pressed.has("s")||pressed.has("arrowdown"))z+=1;
+    if(touchDirection){x+=touchDirection.x;z+=touchDirection.z;}
+    const moving=x!==0||z!==0;
+    if(moving){
+      const length=Math.hypot(x,z);
+      x/=length;z/=length;
+      ref.current.position.x=Math.max(-6.65,Math.min(6.65,ref.current.position.x+x*delta*3.2));
+      ref.current.position.z=Math.max(-4.65,Math.min(5.05,ref.current.position.z+z*delta*3.2));
+      // Face the direction of travel rather than walking backwards.
+      ref.current.rotation.y=Math.atan2(x,z);
+    }
+    const gait=moving?Math.sin(clock.elapsedTime*10):0;
+    ref.current.position.y=moving?Math.abs(Math.sin(clock.elapsedTime*10))*.035:Math.sin(clock.elapsedTime*1.6)*.012;
+    if(leftArm.current)leftArm.current.rotation.x=gait*.58;
+    if(rightArm.current)rightArm.current.rotation.x=-gait*.58;
+    if(leftLeg.current)leftLeg.current.rotation.x=-gait*.48;
+    if(rightLeg.current)rightLeg.current.rotation.x=gait*.48;
+
+    const closest=worldTargets.reduce<{target:Target|null;distance:number}>((best,target)=>{
+      const distance=Math.hypot(ref.current!.position.x-target.position[0],ref.current!.position.z-target.position[1]);
+      return distance<best.distance?{target,distance}:best;
+    },{target:null,distance:Infinity});
     onNearby(closest.distance<2.1?closest.target:null);
-    const mobile=typeof window!=="undefined"&&window.innerWidth<700;
-     camera.position.lerp(new Vector3(ref.current.position.x+(mobile?10.5:8.8),mobile?10.5:8.2,ref.current.position.z+(mobile?14.5:11.8)),Math.min(1,delta*2.2));
-     camera.lookAt(ref.current.position.x,0.7,ref.current.position.z-1.05);
+
+    const touch=typeof window!=="undefined"&&(navigator.maxTouchPoints>0||"ontouchstart" in window);
+    const mobile=touch||window.innerWidth<700;
+    const offset=mobile?new Vector3(6.8,7.8,10.2):new Vector3(8.8,8.2,11.8);
+    camera.position.lerp(new Vector3(ref.current.position.x+offset.x,offset.y,ref.current.position.z+offset.z),Math.min(1,delta*3.2));
+    camera.lookAt(ref.current.position.x,0.78,ref.current.position.z-0.35);
   });
+
   return <group ref={ref} position={[-.2,0,3.8]}>
-    {/* A more readable stylised avatar: face, hair, hoodie, arms, legs and shoes. */}
-    <mesh position={[0,1.18,.02]} castShadow><sphereGeometry args={[.31,24,20]}/><meshStandardMaterial color="#b97e5e" roughness={.88}/></mesh>
-    <mesh position={[0,1.43,-.015]} castShadow><sphereGeometry args={[.34,24,16,0,Math.PI*2,0,Math.PI*.48]}/><meshStandardMaterial color="#25201f" roughness={.92}/></mesh>
-    <mesh position={[0,1.3,.275]} castShadow><boxGeometry args={[.34,.12,.07]}/><meshStandardMaterial color="#25201f" roughness={.8}/></mesh>
-    <mesh position={[-.105,1.2,.294]} castShadow><sphereGeometry args={[.035,12,10]}/><meshStandardMaterial color="#1e2624" roughness={.55}/></mesh>
-    <mesh position={[.105,1.2,.294]} castShadow><sphereGeometry args={[.035,12,10]}/><meshStandardMaterial color="#1e2624" roughness={.55}/></mesh>
-    <mesh position={[0,1.12,.315]} castShadow><sphereGeometry args={[.025,10,8]}/><meshStandardMaterial color="#8c5a46" roughness={.8}/></mesh>
-    <mesh position={[0,.55,0]} castShadow><capsuleGeometry args={[.27,.72,8,14]}/><meshStandardMaterial color={accent} roughness={.68}/></mesh>
-    <mesh position={[0,.54,.25]} castShadow><boxGeometry args={[.22,.16,.045]}/><meshStandardMaterial color="#d5d5c5" roughness={.8}/></mesh>
-    <mesh position={[-.17,.63,.015]} rotation={[0,0,-.16]} castShadow><capsuleGeometry args={[.09,.47,6,10]}/><meshStandardMaterial color="#b97e5e" roughness={.9}/></mesh>
-    <mesh position={[.17,.63,.015]} rotation={[0,0,.16]} castShadow><capsuleGeometry args={[.09,.47,6,10]}/><meshStandardMaterial color="#b97e5e" roughness={.9}/></mesh>
-    <mesh position={[-.15,.15,0]} castShadow><capsuleGeometry args={[.085,.34,5,10]}/><meshStandardMaterial color="#222a24"/></mesh>
-    <mesh position={[.15,.15,0]} castShadow><capsuleGeometry args={[.085,.34,5,10]}/><meshStandardMaterial color="#222a24"/></mesh>
-    <mesh position={[-.15,.045,.1]} castShadow><boxGeometry args={[.2,.1,.32]}/><meshStandardMaterial color="#e4e2d6" roughness={.9}/></mesh>
-    <mesh position={[.15,.045,.1]} castShadow><boxGeometry args={[.2,.1,.32]}/><meshStandardMaterial color="#e4e2d6" roughness={.9}/></mesh>
+    {/* A more intentional stylised citizen silhouette with separate animated limbs. */}
+    {/* Hood and neck */}
+    <mesh position={[0,.91,-.09]} castShadow><sphereGeometry args={[.34,20,16]}/><meshStandardMaterial color="#343a32" roughness={.95}/></mesh>
+    <mesh position={[0,.98,.015]} castShadow><cylinderGeometry args={[.105,.12,.22,14]}/><meshStandardMaterial color="#b97e5e" roughness={.9}/></mesh>
+    {/* Head, ears, hairline and face */}
+    <mesh position={[0,1.29,.025]} castShadow><sphereGeometry args={[.285,28,22]}/><meshStandardMaterial color="#b97e5e" roughness={.88}/></mesh>
+    <mesh position={[0,1.46,-.035]} castShadow><sphereGeometry args={[.292,24,18,0,Math.PI*2,0,Math.PI*.52]}/><meshStandardMaterial color="#25201f" roughness={.92}/></mesh>
+    <mesh position={[-.277,1.28,.015]} castShadow><sphereGeometry args={[.055,12,10]}/><meshStandardMaterial color="#b97e5e" roughness={.9}/></mesh>
+    <mesh position={[.277,1.28,.015]} castShadow><sphereGeometry args={[.055,12,10]}/><meshStandardMaterial color="#b97e5e" roughness={.9}/></mesh>
+    <mesh position={[0,1.31,.292]} castShadow><boxGeometry args={[.31,.075,.025]}/><meshStandardMaterial color="#25201f" roughness={.8}/></mesh>
+    <mesh position={[-.09,1.29,.304]} castShadow><sphereGeometry args={[.027,12,10]}/><meshStandardMaterial color="#17211e" roughness={.5}/></mesh>
+    <mesh position={[.09,1.29,.304]} castShadow><sphereGeometry args={[.027,12,10]}/><meshStandardMaterial color="#17211e" roughness={.5}/></mesh>
+    <mesh position={[0,1.19,.311]} castShadow><sphereGeometry args={[.022,10,8]}/><meshStandardMaterial color="#8c5a46" roughness={.8}/></mesh>
+    <mesh position={[0,1.13,.305]}><boxGeometry args={[.075,.018,.015]}/><meshStandardMaterial color="#603b34" roughness={.8}/></mesh>
+    {/* Hoodie torso with front panel, zipper and drawstrings */}
+    <mesh position={[0,.59,0]} castShadow><capsuleGeometry args={[.29,.61,10,18]}/><meshStandardMaterial color={accent} roughness={.72}/></mesh>
+    <mesh position={[0,.61,.285]} castShadow><boxGeometry args={[.035,.57,.018]}/><meshStandardMaterial color="#e7e5d9" roughness={.6}/></mesh>
+    <mesh position={[-.075,.81,.282]}><cylinderGeometry args={[.012,.012,.18,8]}/><meshStandardMaterial color="#f0e5c9" roughness={.8}/></mesh>
+    <mesh position={[.075,.81,.282]}><cylinderGeometry args={[.012,.012,.18,8]}/><meshStandardMaterial color="#f0e5c9" roughness={.8}/></mesh>
+    <mesh position={[.16,.48,.26]}><boxGeometry args={[.12,.11,.025]}/><meshStandardMaterial color="#f1e8d7" roughness={.7}/></mesh>
+    <mesh position={[.16,.48,.278]}><boxGeometry args={[.06,.025,.012]}/><meshStandardMaterial color="#5c7650" roughness={.7}/></mesh>
+    {/* Pivoted sleeves and forearms animate while walking. */}
+    <group ref={leftArm} position={[-.3,.82,0]}>
+      <mesh position={[0,-.18,0]} rotation={[0,0,-.08]} castShadow><capsuleGeometry args={[.105,.28,8,12]}/><meshStandardMaterial color={accent} roughness={.72}/></mesh>
+      <mesh position={[0,-.4,.015]} castShadow><capsuleGeometry args={[.075,.23,8,12]}/><meshStandardMaterial color="#b97e5e" roughness={.9}/></mesh>
+      <mesh position={[0,-.54,.035]} castShadow><sphereGeometry args={[.078,12,10]}/><meshStandardMaterial color="#b97e5e" roughness={.9}/></mesh>
+    </group>
+    <group ref={rightArm} position={[.3,.82,0]}>
+      <mesh position={[0,-.18,0]} rotation={[0,0,.08]} castShadow><capsuleGeometry args={[.105,.28,8,12]}/><meshStandardMaterial color={accent} roughness={.72}/></mesh>
+      <mesh position={[0,-.4,.015]} castShadow><capsuleGeometry args={[.075,.23,8,12]}/><meshStandardMaterial color="#b97e5e" roughness={.9}/></mesh>
+      <mesh position={[0,-.54,.035]} castShadow><sphereGeometry args={[.078,12,10]}/><meshStandardMaterial color="#b97e5e" roughness={.9}/></mesh>
+    </group>
+    {/* Trousers and sneakers, animated independently at the hips. */}
+    <group ref={leftLeg} position={[-.145,.3,0]}>
+      <mesh position={[0,-.13,0]} castShadow><capsuleGeometry args={[.105,.28,8,12]}/><meshStandardMaterial color="#252d29" roughness={.88}/></mesh>
+      <mesh position={[0,-.275,.09]} castShadow><boxGeometry args={[.2,.105,.31]}/><meshStandardMaterial color="#e4e2d6" roughness={.82}/></mesh>
+      <mesh position={[0,-.322,.095]}><boxGeometry args={[.2,.025,.3]}/><meshStandardMaterial color="#b8b9ac" roughness={.9}/></mesh>
+    </group>
+    <group ref={rightLeg} position={[.145,.3,0]}>
+      <mesh position={[0,-.13,0]} castShadow><capsuleGeometry args={[.105,.28,8,12]}/><meshStandardMaterial color="#252d29" roughness={.88}/></mesh>
+      <mesh position={[0,-.275,.09]} castShadow><boxGeometry args={[.2,.105,.31]}/><meshStandardMaterial color="#e4e2d6" roughness={.82}/></mesh>
+      <mesh position={[0,-.322,.095]}><boxGeometry args={[.2,.025,.3]}/><meshStandardMaterial color="#b8b9ac" roughness={.9}/></mesh>
+    </group>
     <mesh position={[0,.02,0]} rotation={[-Math.PI/2,0,0]}><circleGeometry args={[.48,24]}/><meshBasicMaterial color="#1c211b" transparent opacity={.2}/></mesh>
   </group>;
 }
-
 function Scene({style,onNearby,touchDirection}:{style?:RoomStyle;onNearby:(target:Target|null)=>void;touchDirection:{x:number;z:number}|null}) {
   const sceneStyle:RoomStyle=style ?? {label:"STARTER APARTMENT",subtitle:"your first home",wall:"#eee7dc",floor:"#c8b8a6",furniture:"#4d5149",accent:"#d98b7b",luxe:false};
 
@@ -233,22 +300,20 @@ export default function CryptoRoom(props:{style?:RoomStyle;originName?:string;ca
 
   return (
     <div className="crypto-room-wrap">
-      <Canvas camera={{position:[8.5,9,15],fov:48}} dpr={[1,1.5]} gl={{antialias:false,powerPreference:"low-power"}} shadows>
+      <Canvas camera={{position:[8.5,9,15],fov:44}} dpr={[1,1.5]} gl={{antialias:false,powerPreference:"low-power"}} shadows>
         <Scene onNearby={setNearby} touchDirection={touchDirection}/>
       </Canvas>
 
       <div className="home-hint">YOUR APARTMENT · WALK UP TO OBJECTS TO LIVE, WORK AND RECOVER</div>
       <div className="city-world-label"><span>YOUR FIRST HOME</span><strong>STARTER APARTMENT · GENESIS HUB</strong></div>
       {nearby && !active && <button className="proximity-prompt" onClick={()=>setActive(nearby.id)}><span>NEARBY · {nearby.label}</span><strong>{nearby.kind === "person" ? "TALK" : "INTERACT"}: {nearby.title} <b>↵</b></strong></button>}
-      <div
-        className="touch-joystick"
-        style={{"--joy-x": `${(touchDirection?.x ?? 0)*25}px`, "--joy-y": `${(touchDirection?.z ?? 0)*25}px`} as CSSProperties}
-        aria-label="Move your character with the joystick"
-        onPointerDown={(event)=>{event.currentTarget.setPointerCapture(event.pointerId);const rect=event.currentTarget.getBoundingClientRect();const dx=(event.clientX-(rect.left+rect.width/2))/(rect.width*0.34);const dz=(event.clientY-(rect.top+rect.height/2))/(rect.height*0.34);const length=Math.hypot(dx,dz)||1;setTouchDirection({x:Math.max(-1,Math.min(1,dx/Math.max(1,length))),z:Math.max(-1,Math.min(1,dz/Math.max(1,length)))});}}
-        onPointerMove={(event)=>{if(event.buttons===0)return;const rect=event.currentTarget.getBoundingClientRect();const dx=(event.clientX-(rect.left+rect.width/2))/(rect.width*0.34);const dz=(event.clientY-(rect.top+rect.height/2))/(rect.height*0.34);const length=Math.hypot(dx,dz)||1;setTouchDirection({x:Math.max(-1,Math.min(1,dx/Math.max(1,length))),z:Math.max(-1,Math.min(1,dz/Math.max(1,length)))});}}
-        onPointerUp={()=>setTouchDirection(null)}
-        onPointerCancel={()=>setTouchDirection(null)}
-      ><span className="joystick-ring"><i /></span><small>MOVE</small></div>
+      <div className="mobile-dpad" aria-label="Character movement controls">
+        <button type="button" aria-label="Move up" onPointerDown={(event)=>{event.preventDefault();event.currentTarget.setPointerCapture(event.pointerId);setTouchDirection({x:0,z:-1});}} onPointerUp={()=>setTouchDirection(null)} onPointerCancel={()=>setTouchDirection(null)} onLostPointerCapture={()=>setTouchDirection(null)}>▲</button>
+        <button type="button" aria-label="Move left" onPointerDown={(event)=>{event.preventDefault();event.currentTarget.setPointerCapture(event.pointerId);setTouchDirection({x:-1,z:0});}} onPointerUp={()=>setTouchDirection(null)} onPointerCancel={()=>setTouchDirection(null)} onLostPointerCapture={()=>setTouchDirection(null)}>◀</button>
+        <span className="dpad-center" aria-hidden="true">MOVE</span>
+        <button type="button" aria-label="Move right" onPointerDown={(event)=>{event.preventDefault();event.currentTarget.setPointerCapture(event.pointerId);setTouchDirection({x:1,z:0});}} onPointerUp={()=>setTouchDirection(null)} onPointerCancel={()=>setTouchDirection(null)} onLostPointerCapture={()=>setTouchDirection(null)}>▶</button>
+        <button type="button" aria-label="Move down" onPointerDown={(event)=>{event.preventDefault();event.currentTarget.setPointerCapture(event.pointerId);setTouchDirection({x:0,z:1});}} onPointerUp={()=>setTouchDirection(null)} onPointerCancel={()=>setTouchDirection(null)} onLostPointerCapture={()=>setTouchDirection(null)}>▼</button>
+      </div>
 
       {active&&target&&(
         <div className="home-action-modal">
