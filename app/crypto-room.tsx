@@ -234,7 +234,8 @@ function Player({accent,onNearby,touchDirection}:{accent:string;onNearby:(target
     <mesh position={[0,1.46,-.035]} castShadow><sphereGeometry args={[.292,24,18,0,Math.PI*2,0,Math.PI*.52]}/><meshStandardMaterial color="#25201f" roughness={.92}/></mesh>
     <mesh position={[-.277,1.28,.015]} castShadow><sphereGeometry args={[.055,12,10]}/><meshStandardMaterial color="#b97e5e" roughness={.9}/></mesh>
     <mesh position={[.277,1.28,.015]} castShadow><sphereGeometry args={[.055,12,10]}/><meshStandardMaterial color="#b97e5e" roughness={.9}/></mesh>
-    <mesh position={[0,1.31,.292]} castShadow><boxGeometry args={[.31,.075,.025]}/><meshStandardMaterial color="#25201f" roughness={.8}/></mesh>
+    {/* Short fringe sits above the eyes instead of obscuring the face. */}
+    <mesh position={[0,1.42,.27]} castShadow><boxGeometry args={[.31,.065,.05]}/><meshStandardMaterial color="#25201f" roughness={.8}/></mesh>
     <mesh position={[-.09,1.29,.304]} castShadow><sphereGeometry args={[.027,12,10]}/><meshStandardMaterial color="#17211e" roughness={.5}/></mesh>
     <mesh position={[.09,1.29,.304]} castShadow><sphereGeometry args={[.027,12,10]}/><meshStandardMaterial color="#17211e" roughness={.5}/></mesh>
     <mesh position={[0,1.19,.311]} castShadow><sphereGeometry args={[.022,10,8]}/><meshStandardMaterial color="#8c5a46" roughness={.8}/></mesh>
