@@ -117,8 +117,34 @@ const pfps: PFP[] = [
 
 const pick = <T,>(items: T[]) => items[Math.floor(Math.random() * items.length)];
 
+function localPfpIllustration(pfp: PFP) {
+  const seed = pfp.id.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  const skin = ["#d99b79", "#e6b18a", "#b9785f", "#f0c29b"][seed % 4];
+  const hair = ["#252126", "#3b2c27", "#704b37", "#d5b56f"][Math.floor(seed / 3) % 4];
+  const accent = pfp.accent || "#9bb4a1";
+  const penguin = pfp.name === "Pudgy Penguin";
+  const punk = pfp.name === "CryptoPunk";
+  const wojak = pfp.name === "Wojak";
+  const face = penguin
+    ? `<ellipse cx="120" cy="119" rx="65" ry="72" fill="#202a30"/><ellipse cx="120" cy="139" rx="43" ry="46" fill="#f4f1e8"/><circle cx="99" cy="112" r="7" fill="#172126"/><circle cx="141" cy="112" r="7" fill="#172126"/><path d="M108 128 L132 128 L120 143 Z" fill="#f3a33c"/><ellipse cx="120" cy="207" rx="59" ry="26" fill="#f1a13c"/>`
+    : punk
+      ? `<rect x="60" y="74" width="120" height="116" rx="8" fill="${skin}"/><rect x="60" y="62" width="120" height="25" fill="${hair}"/><rect x="72" y="103" width="26" height="20" fill="#20252b"/><rect x="142" y="103" width="26" height="20" fill="#20252b"/><rect x="108" y="137" width="24" height="10" fill="#7b5144"/><rect x="82" y="153" width="76" height="13" fill="#f2d6b4"/>`
+      : `<path d="M40 235 Q45 176 85 177 L155 177 Q195 180 200 235 Z" fill="${accent}"/><ellipse cx="120" cy="124" rx="57" ry="68" fill="${skin}"/><path d="${wojak ? "M61 111 Q50 36 120 47 Q190 36 179 111 L167 92 Q142 68 120 74 Q89 69 72 97 Z" : "M60 111 Q37 48 91 42 Q142 22 179 67 L179 114 Q155 72 120 76 Q87 71 60 111 Z"}" fill="${hair}"/><ellipse cx="99" cy="122" rx="6" ry="8" fill="#25252a"/><ellipse cx="141" cy="122" rx="6" ry="8" fill="#25252a"/><path d="M105 153 Q120 163 135 153" stroke="#6d3934" stroke-width="5" fill="none" stroke-linecap="round"/>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="${accent}"/><stop offset="1" stop-color="#f2e7d4"/></linearGradient></defs><rect width="240" height="240" rx="28" fill="url(#bg)"/><circle cx="190" cy="42" r="28" fill="#ffffff" opacity=".24"/><circle cx="36" cy="196" r="38" fill="#ffffff" opacity=".18"/>${face}<rect x="12" y="12" width="216" height="216" rx="22" fill="none" stroke="#ffffff" stroke-opacity=".5" stroke-width="3"/></svg>`;
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}
+
 function PfpImage({ pfp, className = "" }: { pfp: PFP; className?: string }) {
-  return <img className={`pfp-image ${className}`} src={pfp.image} alt={pfp.name} loading="eager" decoding="async" />;
+  const [failed, setFailed] = useState(false);
+  useEffect(() => setFailed(false), [pfp.image]);
+  return <img
+    className={`pfp-image ${className}`}
+    src={failed ? localPfpIllustration(pfp) : pfp.image}
+    alt={pfp.name}
+    loading="eager"
+    decoding="async"
+    onError={() => { if (!failed) setFailed(true); }}
+  />;
 }
 
 function CitySheet({ selected, select, close, onGo }: { selected: string; select: (name: string) => void; close: () => void; onGo: (venue: Venue) => void }) {
