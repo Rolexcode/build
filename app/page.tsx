@@ -645,7 +645,7 @@ export default function Home() {
               <strong>{name.split(" ")[0]} just spawned.</strong>
               <small>The city is already moving.</small>
               <div className="origin-pfp-stack">
-                {[pfps[0], pfps[12], pfps[17], pfps[29]].map(item => <PfpImage key={item.id} pfp={item} />)}
+                {[pfps[0], pfps[4], pfps[14], pfps[24]].map(item => <PfpImage key={item.id} pfp={item} />)}
               </div>
               <p>Thousands of lives. One shared timeline.</p>
             </div>
@@ -664,7 +664,7 @@ export default function Home() {
       <section className="signup-layout">
         <div className="signup-copy">
           <div className="floating-pfps">
-            {pfps.map((item, index) => <div className={`float-pfp f${index + 1}`} key={item.id}><PfpImage pfp={item} /></div>)}
+            {[pfps[0], pfps[4], pfps[14], pfps[24], pfps[29]].map((item, index) => <div className={`float-pfp f${index + 1}`} key={item.id}><PfpImage pfp={item} /></div>)}
           </div>
           <span className="eyebrow">A LIFE SIM FOR THE CRYPTO-NATIVE</span>
           <h1>Make a life.<br /><span>Not a profile.</span></h1>
