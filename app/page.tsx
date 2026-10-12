@@ -135,15 +135,25 @@ function localPfpIllustration(pfp: PFP) {
 }
 
 function PfpImage({ pfp, className = "" }: { pfp: PFP; className?: string }) {
-  const [failed, setFailed] = useState(false);
-  useEffect(() => setFailed(false), [pfp.image]);
+  // Always paint a local, deterministic portrait immediately. Remote NFT art is
+  // an enhancement, never a dependency for onboarding or the player's identity.
+  const fallback = useMemo(() => localPfpIllustration(pfp), [pfp.id, pfp.accent, pfp.name]);
+  const [source, setSource] = useState(fallback);
+  useEffect(() => {
+    let cancelled = false;
+    setSource(fallback);
+    const remote = new Image();
+    remote.onload = () => { if (!cancelled) setSource(pfp.image); };
+    remote.onerror = () => { /* Keep the local portrait visible. */ };
+    remote.src = pfp.image;
+    return () => { cancelled = true; remote.onload = null; remote.onerror = null; };
+  }, [pfp.id, pfp.image, fallback]);
   return <img
     className={`pfp-image ${className}`}
-    src={failed ? localPfpIllustration(pfp) : pfp.image}
+    src={source}
     alt={pfp.name}
     loading="eager"
     decoding="async"
-    onError={() => { if (!failed) setFailed(true); }}
   />;
 }
 
@@ -263,6 +273,14 @@ export default function Home() {
     { symbol: "BTC/USDT", label: "Bitcoin", price: 0, change: 2.4 },
     { symbol: "ETH/USDT", label: "Ethereum", price: 0, change: -0.8 },
   ]);
+
+  useEffect(() => {
+    // Android Chrome can report a desktop-width viewport when "Desktop site"
+    // is enabled. Detect touch capability independently of viewport width.
+    const touchLayout = navigator.maxTouchPoints > 0 || "ontouchstart" in window;
+    document.documentElement.classList.toggle("touch-layout", touchLayout);
+    return () => document.documentElement.classList.remove("touch-layout");
+  }, []);
 
   useEffect(() => {
     try {
