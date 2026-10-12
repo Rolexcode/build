@@ -455,3 +455,39 @@ html.touch-layout .mobile-dpad{display:grid}
 @media (min-width: 1001px) {
   .mobile-dpad { display: none; }
 }
+
+
+/* Final touch-device overrides: the room must be the first thing seen, even
+   when Android's Desktop site mode activates the wider breakpoints. */
+html.touch-layout .home-scene {
+  grid-template-columns: minmax(0, 1fr) !important;
+  min-width: 0;
+}
+html.touch-layout .home-scene .room {
+  order: -1 !important;
+  width: 100%;
+  height: auto;
+  min-width: 0;
+  min-height: 0;
+}
+html.touch-layout .crypto-room-wrap {
+  height: min(64dvh, 560px) !important;
+  min-height: 410px !important;
+  width: 100%;
+}
+html.touch-layout .mobile-dpad {
+  display: grid !important;
+}
+html.touch-layout .scene-copy {
+  order: 1 !important;
+  min-width: 0;
+}
+@media (max-width: 650px) {
+  html.touch-layout .crypto-room-wrap {
+    height: min(62dvh, 510px) !important;
+    min-height: 400px !important;
+  }
+  html.touch-layout .home-scene .room {
+    border-radius: 18px;
+  }
+}
