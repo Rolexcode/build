@@ -150,7 +150,7 @@ button:disabled{cursor:not-allowed}
 .home-action-buttons button:first-child{background:#1f251d;color:#fffdf6}
 .home-action-buttons button:last-child{background:#eef1e8;color:#596255}
 .home-toast{position:absolute;top:24px;left:50%;transform:translateX(-50%);z-index:15;background:#1f251d;color:#fffdf6;border-radius:999px;padding:10px 15px;font:9px 'Space Mono';box-shadow:0 12px 28px rgba(20,28,19,.22)}
-.proximity-prompt{position:absolute;left:50%;bottom:26px;z-index:10;min-width:235px;transform:translateX(-50%);padding:11px 14px;border:1px solid rgba(214,236,168,.85);border-radius:14px;background:rgba(24,31,23,.92);color:#fff;text-align:left;box-shadow:0 14px 34px rgba(13,18,12,.25);backdrop-filter:blur(10px)}.proximity-prompt span,.proximity-prompt strong{display:block}.proximity-prompt span{color:#b9e766;font:8px 'Space Mono';letter-spacing:.06em}.proximity-prompt strong{margin-top:5px;font-size:11px}.proximity-prompt b{float:right;color:#b9e766;font-size:16px}.touch-walk{position:absolute;left:18px;bottom:18px;z-index:10;display:none;grid-template-columns:42px 42px 42px;grid-template-rows:42px 42px;gap:4px}.touch-walk button{display:grid;place-items:center;border:1px solid rgba(255,255,255,.18);border-radius:11px;background:rgba(24,31,23,.76);color:#fff;font-size:18px;backdrop-filter:blur(8px);touch-action:none}.touch-walk button:first-child{grid-column:2}.touch-walk button:nth-child(2){grid-column:1;grid-row:2}.touch-walk button:nth-child(3){grid-column:2;grid-row:2}.touch-walk button:nth-child(4){grid-column:3;grid-row:2}
+.proximity-prompt{position:absolute;left:50%;bottom:26px;z-index:10;min-width:235px;transform:translateX(-50%);padding:11px 14px;border:1px solid rgba(214,236,168,.85);border-radius:14px;background:rgba(24,31,23,.92);color:#fff;text-align:left;box-shadow:0 14px 34px rgba(13,18,12,.25);backdrop-filter:blur(10px)}.proximity-prompt span,.proximity-prompt strong{display:block}.proximity-prompt span{color:#b9e766;font:8px 'Space Mono';letter-spacing:.06em}.proximity-prompt strong{margin-top:5px;font-size:11px}.proximity-prompt b{float:right;color:#b9e766;font-size:16px}.touch-joystick{position:absolute;left:18px;bottom:18px;z-index:10;display:none;width:124px;height:124px;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.2);border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.1),rgba(20,28,20,.62));box-shadow:0 12px 30px rgba(10,15,10,.2);touch-action:none;user-select:none;-webkit-user-select:none;--joy-x:0px;--joy-y:0px}.joystick-ring{display:grid;place-items:center;width:56px;height:56px;border:1px solid rgba(255,255,255,.3);border-radius:50%;background:rgba(245,246,235,.16);box-shadow:0 4px 14px rgba(0,0,0,.2);transform:translate(var(--joy-x),var(--joy-y));pointer-events:none}.joystick-ring i{display:block;width:32px;height:32px;border:1px solid rgba(255,255,255,.6);border-radius:50%;background:linear-gradient(145deg,#d7e8b1,#8eb94d);box-shadow:0 3px 10px rgba(0,0,0,.2)}.touch-joystick small{position:absolute;bottom:17px;color:rgba(255,255,255,.82);font:7px 'Space Mono';letter-spacing:.12em;pointer-events:none}
 .room{background:#b9c8ae}.crypto-room-wrap{background:#b9c8ae}.home-scene{grid-template-columns:minmax(310px,.55fr) minmax(600px,1.45fr);gap:38px}.room{height:min(740px,78vh);min-height:560px}.home-hint{background:rgba(20,28,20,.88)}
 .city-world-label{position:absolute;top:18px;left:18px;z-index:8;display:flex;flex-direction:column;gap:3px;padding:10px 12px;border:1px solid rgba(255,255,255,.5);border-radius:12px;background:rgba(248,247,237,.9);box-shadow:0 10px 28px rgba(30,42,31,.12);pointer-events:none}.city-world-label span{color:#6d842c;font:8px 'Space Mono';letter-spacing:.07em}.city-world-label strong{font-size:11px;letter-spacing:-.02em}
 @media(max-width:650px){
@@ -160,13 +160,25 @@ button:disabled{cursor:not-allowed}
   .home-action{padding:8px 6px;border-radius:10px}
   .home-action strong{font-size:9px}
   .home-action span{font-size:6px}
-  .touch-walk{display:grid}.home-hint{bottom:116px}.proximity-prompt{bottom:26px;left:auto;right:12px;transform:none;min-width:0;max-width:calc(100% - 180px)}
+  .touch-joystick{display:flex}.home-hint{left:12px;bottom:155px;max-width:calc(100% - 24px);white-space:normal;line-height:1.4}.proximity-prompt{bottom:22px;left:auto;right:12px;transform:none;min-width:0;max-width:calc(100% - 165px);font-size:10px}.city-world-label{top:10px;left:10px;max-width:calc(100% - 20px);padding:8px 9px}.city-world-label strong{font-size:9px}
 }
 
 
-/* Starter apartment: give the widened floor plan enough breathing room on phones. */
-.crypto-room-wrap canvas{touch-action:none}
-@media(max-width:650px){.crypto-room-wrap{min-height:600px}.room{height:520px}.home-hint{bottom:112px}.home-interactions{bottom:10px}}
+/* Mobile-first game stage: keep the world fitted to the viewport and reserve room for controls. */
+.crypto-room-wrap{height:100%;min-height:0;overflow:hidden}
+.crypto-room-wrap canvas{touch-action:none;width:100%!important;height:100%!important;display:block}
+@media(max-width:650px){
+  .crypto-room-wrap{height:min(72dvh,680px);min-height:500px}
+  .room{height:auto;min-height:0}
+  .home-scene{padding:12px 10px 28px;gap:18px}
+  .home-scene .room{border-radius:22px}
+  .home-hint{bottom:154px}
+  .home-interactions{bottom:8px;left:8px;right:8px;gap:4px}
+  .home-action{padding:7px 4px}
+  .home-action strong{font-size:8px}
+  .home-action span{font-size:5px}
+}
+@media(max-width:380px){.touch-joystick{width:106px;height:106px;left:12px;bottom:12px}.proximity-prompt{max-width:calc(100% - 140px)}.home-hint{bottom:132px}}
 
 /* The phone makes the city present even while the player is at home. */
 .needs small{display:block;margin-top:6px;color:#687166;font:8px 'Space Mono'}.phone-trigger{min-height:40px;padding:0 11px;border:1px solid #cbd1c2;border-radius:11px;background:#f7f8f1;color:#465045;font:9px 'Space Mono';letter-spacing:.04em}.phone-trigger span{margin-right:5px;color:#6c9421}.phone-trigger:focus-visible,.phone-close:focus-visible,.phone-nav button:focus-visible,.phone-content button:focus-visible{outline:3px solid #587c15;outline-offset:3px}.life-notice{position:fixed;z-index:45;bottom:28px;left:50%;max-width:calc(100vw - 32px);transform:translateX(-50%);border-radius:14px;background:#1f251d;color:#fffdf6;padding:13px 17px;box-shadow:0 16px 40px rgba(20,28,19,.28);font:11px 'Space Mono';letter-spacing:.02em}
