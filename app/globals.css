@@ -267,3 +267,191 @@ html.touch-layout .mobile-dpad{display:grid}
   html.touch-layout .proximity-prompt{width:calc(100% - 143px);right:8px;padding:8px}
   html.touch-layout .home-hint{bottom:139px}
 }
+
+
+/* Responsive world pass: the apartment must fit the actual viewport, including
+   Android browsers using "Desktop site" (often around 980px CSS wide). */
+@media (max-width: 1000px) {
+  .home-scene {
+    grid-template-columns: minmax(0, 1fr) !important;
+    min-height: 0;
+    width: 100%;
+    gap: 18px;
+    padding: 14px clamp(12px, 3vw, 28px) 30px;
+    align-items: stretch;
+  }
+  .home-scene .room {
+    order: -1;
+    width: 100%;
+    min-width: 0;
+    height: min(66dvh, 620px);
+    min-height: 430px;
+    border-radius: 24px;
+  }
+  .home-scene .scene-copy {
+    order: 1;
+    min-width: 0;
+  }
+  .crypto-room-wrap {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+  }
+  .game-topbar {
+    gap: 8px 12px;
+    padding-inline: clamp(12px, 3vw, 28px);
+  }
+  .game-topbar .top-status {
+    display: none;
+  }
+}
+@media (max-width: 650px) {
+  .home-scene {
+    padding: 8px 8px 24px;
+    gap: 14px;
+  }
+  .home-scene .room {
+    height: min(64dvh, 560px);
+    min-height: 410px;
+    border-radius: 18px;
+  }
+  .scene-copy h1 {
+    font-size: clamp(50px, 15vw, 72px);
+  }
+  .scene-copy > p {
+    font-size: 15px;
+    margin: 16px 0;
+  }
+  .game-topbar {
+    min-height: 60px;
+    padding: 8px 12px;
+  }
+  .top-profile {
+    margin-left: auto;
+  }
+  .top-profile > span {
+    display: none;
+  }
+  .mobile-dpad {
+    position: absolute;
+    z-index: 20;
+    left: 12px;
+    bottom: 12px;
+    width: 132px;
+    height: 132px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 4px;
+    padding: 5px;
+    border: 1px solid rgba(255,255,255,.18);
+    border-radius: 22px;
+    background: rgba(22,29,21,.62);
+    box-shadow: 0 10px 28px rgba(0,0,0,.2);
+    backdrop-filter: blur(8px);
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .mobile-dpad button {
+    display: grid;
+    place-items: center;
+    min-width: 0;
+    min-height: 0;
+    padding: 0;
+    border: 1px solid rgba(255,255,255,.18);
+    border-radius: 12px;
+    background: rgba(245,247,236,.94);
+    color: #263024;
+    font-size: 18px;
+    font-weight: 800;
+    touch-action: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mobile-dpad button:active {
+    background: #b7ef45;
+    transform: scale(.96);
+  }
+  .mobile-dpad button:nth-of-type(1) { grid-column: 2; grid-row: 1; }
+  .mobile-dpad button:nth-of-type(2) { grid-column: 1; grid-row: 2; }
+  .mobile-dpad .dpad-center {
+    display: grid;
+    place-items: center;
+    grid-column: 2;
+    grid-row: 2;
+    color: rgba(255,255,255,.82);
+    font: 7px 'Space Mono', monospace;
+    letter-spacing: .05em;
+  }
+  .mobile-dpad button:nth-of-type(3) { grid-column: 3; grid-row: 2; }
+  .mobile-dpad button:nth-of-type(4) { grid-column: 2; grid-row: 3; }
+  .home-hint {
+    left: 12px;
+    right: 12px;
+    bottom: 154px;
+    width: auto;
+    max-width: none;
+    white-space: normal;
+    line-height: 1.35;
+    font-size: 7px;
+  }
+  .city-world-label {
+    top: 9px;
+    left: 9px;
+    max-width: calc(100% - 18px);
+  }
+  .city-world-label strong {
+    font-size: 9px;
+  }
+  .proximity-prompt {
+    left: auto;
+    right: 10px;
+    bottom: 14px;
+    max-width: calc(100% - 160px);
+    min-width: 0;
+    transform: none;
+    padding: 10px;
+  }
+}
+@media (min-width: 651px) and (max-width: 1000px) {
+  .mobile-dpad {
+    position: absolute;
+    z-index: 20;
+    left: 16px;
+    bottom: 16px;
+    width: 138px;
+    height: 138px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 4px;
+    padding: 5px;
+    border: 1px solid rgba(255,255,255,.18);
+    border-radius: 22px;
+    background: rgba(22,29,21,.62);
+    backdrop-filter: blur(8px);
+    touch-action: none;
+  }
+  .mobile-dpad button {
+    display: grid;
+    place-items: center;
+    min-width: 0;
+    min-height: 0;
+    padding: 0;
+    border: 1px solid rgba(255,255,255,.18);
+    border-radius: 12px;
+    background: rgba(245,247,236,.94);
+    color: #263024;
+    font-size: 18px;
+    font-weight: 800;
+    touch-action: none;
+  }
+  .mobile-dpad button:nth-of-type(1) { grid-column: 2; grid-row: 1; }
+  .mobile-dpad button:nth-of-type(2) { grid-column: 1; grid-row: 2; }
+  .mobile-dpad .dpad-center { display:grid;place-items:center;grid-column:2;grid-row:2;color:rgba(255,255,255,.82);font:7px 'Space Mono'; }
+  .mobile-dpad button:nth-of-type(3) { grid-column: 3; grid-row: 2; }
+  .mobile-dpad button:nth-of-type(4) { grid-column: 2; grid-row: 3; }
+}
+@media (min-width: 1001px) {
+  .mobile-dpad { display: none; }
+}
