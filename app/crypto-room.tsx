@@ -1,7 +1,7 @@
 "use client";
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Vector3 } from "three";
 import type { Group } from "three";
 
@@ -176,11 +176,21 @@ function Player({accent,onNearby,touchDirection}:{accent:string;onNearby:(target
      camera.lookAt(ref.current.position.x,0.7,ref.current.position.z-1.05);
   });
   return <group ref={ref} position={[-.2,0,3.8]}>
-    <mesh position={[0,1.16,.03]} castShadow><sphereGeometry args={[.34,20,18]}/><meshStandardMaterial color="#c78a68" roughness={.9}/></mesh>
-    <mesh position={[0,1.22,.34]} castShadow><boxGeometry args={[.49,.13,.08]}/><meshStandardMaterial color="#1c2523" metalness={.2} roughness={.38}/></mesh>
-    <mesh position={[0,1.48,0]} castShadow><sphereGeometry args={[.36,20,18,0,Math.PI*2,0,Math.PI*.42]}/><meshStandardMaterial color="#2a2020" roughness={.85}/></mesh>
-    <mesh position={[0,.55,0]} castShadow><capsuleGeometry args={[.26,.72,6,12]}/><meshStandardMaterial color={accent} roughness={.65}/></mesh>
-    <mesh position={[-.15,.15,0]} castShadow><capsuleGeometry args={[.08,.35,4,8]}/><meshStandardMaterial color="#222a24"/></mesh><mesh position={[.15,.15,0]} castShadow><capsuleGeometry args={[.08,.35,4,8]}/><meshStandardMaterial color="#222a24"/></mesh>
+    {/* A more readable stylised avatar: face, hair, hoodie, arms, legs and shoes. */}
+    <mesh position={[0,1.18,.02]} castShadow><sphereGeometry args={[.31,24,20]}/><meshStandardMaterial color="#b97e5e" roughness={.88}/></mesh>
+    <mesh position={[0,1.43,-.015]} castShadow><sphereGeometry args={[.34,24,16,0,Math.PI*2,0,Math.PI*.48]}/><meshStandardMaterial color="#25201f" roughness={.92}/></mesh>
+    <mesh position={[0,1.3,.275]} castShadow><boxGeometry args={[.34,.12,.07]}/><meshStandardMaterial color="#25201f" roughness={.8}/></mesh>
+    <mesh position={[-.105,1.2,.294]} castShadow><sphereGeometry args={[.035,12,10]}/><meshStandardMaterial color="#1e2624" roughness={.55}/></mesh>
+    <mesh position={[.105,1.2,.294]} castShadow><sphereGeometry args={[.035,12,10]}/><meshStandardMaterial color="#1e2624" roughness={.55}/></mesh>
+    <mesh position={[0,1.12,.315]} castShadow><sphereGeometry args={[.025,10,8]}/><meshStandardMaterial color="#8c5a46" roughness={.8}/></mesh>
+    <mesh position={[0,.55,0]} castShadow><capsuleGeometry args={[.27,.72,8,14]}/><meshStandardMaterial color={accent} roughness={.68}/></mesh>
+    <mesh position={[0,.54,.25]} castShadow><boxGeometry args={[.22,.16,.045]}/><meshStandardMaterial color="#d5d5c5" roughness={.8}/></mesh>
+    <mesh position={[-.17,.63,.015]} rotation={[0,0,-.16]} castShadow><capsuleGeometry args={[.09,.47,6,10]}/><meshStandardMaterial color="#b97e5e" roughness={.9}/></mesh>
+    <mesh position={[.17,.63,.015]} rotation={[0,0,.16]} castShadow><capsuleGeometry args={[.09,.47,6,10]}/><meshStandardMaterial color="#b97e5e" roughness={.9}/></mesh>
+    <mesh position={[-.15,.15,0]} castShadow><capsuleGeometry args={[.085,.34,5,10]}/><meshStandardMaterial color="#222a24"/></mesh>
+    <mesh position={[.15,.15,0]} castShadow><capsuleGeometry args={[.085,.34,5,10]}/><meshStandardMaterial color="#222a24"/></mesh>
+    <mesh position={[-.15,.045,.1]} castShadow><boxGeometry args={[.2,.1,.32]}/><meshStandardMaterial color="#e4e2d6" roughness={.9}/></mesh>
+    <mesh position={[.15,.045,.1]} castShadow><boxGeometry args={[.2,.1,.32]}/><meshStandardMaterial color="#e4e2d6" roughness={.9}/></mesh>
     <mesh position={[0,.02,0]} rotation={[-Math.PI/2,0,0]}><circleGeometry args={[.48,24]}/><meshBasicMaterial color="#1c211b" transparent opacity={.2}/></mesh>
   </group>;
 }
@@ -232,6 +242,7 @@ export default function CryptoRoom(props:{style?:RoomStyle;originName?:string;ca
       {nearby && !active && <button className="proximity-prompt" onClick={()=>setActive(nearby.id)}><span>NEARBY · {nearby.label}</span><strong>{nearby.kind === "person" ? "TALK" : "INTERACT"}: {nearby.title} <b>↵</b></strong></button>}
       <div
         className="touch-joystick"
+        style={{"--joy-x": `${(touchDirection?.x ?? 0)*25}px`, "--joy-y": `${(touchDirection?.z ?? 0)*25}px`} as CSSProperties}
         aria-label="Move your character with the joystick"
         onPointerDown={(event)=>{event.currentTarget.setPointerCapture(event.pointerId);const rect=event.currentTarget.getBoundingClientRect();const dx=(event.clientX-(rect.left+rect.width/2))/(rect.width*0.34);const dz=(event.clientY-(rect.top+rect.height/2))/(rect.height*0.34);const length=Math.hypot(dx,dz)||1;setTouchDirection({x:Math.max(-1,Math.min(1,dx/Math.max(1,length))),z:Math.max(-1,Math.min(1,dz/Math.max(1,length)))});}}
         onPointerMove={(event)=>{if(event.buttons===0)return;const rect=event.currentTarget.getBoundingClientRect();const dx=(event.clientX-(rect.left+rect.width/2))/(rect.width*0.34);const dz=(event.clientY-(rect.top+rect.height/2))/(rect.height*0.34);const length=Math.hypot(dx,dz)||1;setTouchDirection({x:Math.max(-1,Math.min(1,dx/Math.max(1,length))),z:Math.max(-1,Math.min(1,dz/Math.max(1,length)))});}}
