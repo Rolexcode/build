@@ -533,7 +533,7 @@ html.touch-layout .scene-copy {
 .district-pin:before{position:absolute;inset:-5px;z-index:-1;border:1px solid rgba(255,255,255,.6);border-radius:13px;content:"";opacity:0;transform:scale(.82);transition:opacity .18s ease,transform .18s ease}
 .district-pin:hover,.district-pin.selected{transform:translate(-50%,-50%) scale(1.06);box-shadow:0 9px 25px rgba(29,43,26,.28)}
 .district-pin.selected:before{opacity:1;transform:scale(1)}
-@keyframes city-drive{0%{transform:translateX(0)}100%{transform:translateX(1200%)}}
+@keyframes city-drive{0%{left:-5%}100%{left:105%}}
 @keyframes city-walk{0%,100%{transform:translate(0,0)}50%{transform:translate(6px,-4px)}}
 @keyframes you-pulse{0%{box-shadow:0 0 0 0 rgba(183,239,69,.4)}100%{box-shadow:0 0 0 11px rgba(183,239,69,0)}}
 @media(max-width:600px){.map-atmosphere{top:8px;left:8px;padding:6px 8px;gap:3px 7px}.map-atmosphere span{font-size:7px}.map-atmosphere small{font-size:6px}.block-tower{box-shadow:4px 5px 0 rgba(70,92,67,.16)}.map-you-pin i{width:19px;height:19px}}
