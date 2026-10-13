@@ -28,14 +28,14 @@ function Box({position,size,color}:{position:[number,number,number];size:[number
 type HomeAction = "sleep" | "hygiene" | "cook" | "work" | "watch";
 type NpcId = "mara" | "rae" | "dex" | "nia";
 type Interaction = HomeAction | NpcId;
-type Target = { id: Interaction; kind: "place" | "person"; label: string; title: string; position: [number, number] };
+type Target = { id: Interaction; kind: "place" | "person"; label: string; title: string; position: [number, number]; walkPosition?: [number, number] };
 
 const worldTargets: Target[] = [
-  { id:"sleep", kind:"place", label:"BEDROOM", title:"Get some sleep", position:[-4.6,-2.5] },
-  { id:"hygiene", kind:"place", label:"BATHROOM", title:"Freshen up", position:[5.1,-2.8] },
-  { id:"cook", kind:"place", label:"KITCHEN", title:"Make something to eat", position:[4.4,2.1] },
-  { id:"work", kind:"place", label:"WORK DESK", title:"Work on a bounty", position:[-4.2,2.4] },
-  { id:"watch", kind:"place", label:"LOUNGE", title:"Take a break", position:[0,-2.8] },
+  { id:"sleep", kind:"place", label:"BEDROOM", title:"Get some sleep", position:[-4.6,-2.5], walkPosition:[-4.2,-0.72] },
+  { id:"hygiene", kind:"place", label:"BATHROOM", title:"Freshen up", position:[5.1,-2.8], walkPosition:[4.05,-2.65] },
+  { id:"cook", kind:"place", label:"KITCHEN", title:"Make something to eat", position:[4.4,2.1], walkPosition:[4.4,1.48] },
+  { id:"work", kind:"place", label:"WORK DESK", title:"Work on a bounty", position:[-4.2,2.4], walkPosition:[-4.2,3.78] },
+  { id:"watch", kind:"place", label:"LOUNGE", title:"Take a break", position:[0,-2.8], walkPosition:[-2.0,-1.8] },
   { id:"mara", kind:"person", label:"MARA", title:"Talk to Mara", position:[2.1,0.6] },
   { id:"rae", kind:"person", label:"RAE", title:"Talk to Rae", position:[-1.8,0.7] },
   { id:"dex", kind:"person", label:"DEX", title:"Talk to Dex", position:[2.5,-1.1] },
@@ -207,8 +207,20 @@ function Player({accent,onNearby,moveTarget,onArrive}:{accent:string;onNearby:(t
       if(moving){const length=Math.hypot(x,z);x/=length;z/=length;}
     }
     if(moving){
-      ref.current.position.x=Math.max(-6.65,Math.min(6.65,ref.current.position.x+x*delta*3.35));
-      ref.current.position.z=Math.max(-4.65,Math.min(5.05,ref.current.position.z+z*delta*3.35));
+      const nextX=Math.max(-6.65,Math.min(6.65,ref.current.position.x+x*delta*3.35));
+      const nextZ=Math.max(-4.65,Math.min(5.05,ref.current.position.z+z*delta*3.35));
+      const blockers:[number,number,number,number][]=[
+        [-6.15,-3.35,-4.35,-1.0],
+        [-5.55,-2.95,1.88,3.02],
+        [-5.55,-2.95,2.95,3.65],
+        [2.25,6.9,2.05,2.98],
+        [4.95,7.25,-3.95,-1.85],
+        [-1.65,1.7,-3.45,-2.1],
+        [-1.25,1.35,-1.5,-0.3],
+      ];
+      const blocked=(px:number,pz:number)=>blockers.some(([minX,maxX,minZ,maxZ])=>px>minX&&px<maxX&&pz>minZ&&pz<maxZ);
+      if(!blocked(nextX,ref.current.position.z))ref.current.position.x=nextX;
+      if(!blocked(ref.current.position.x,nextZ))ref.current.position.z=nextZ;
       ref.current.rotation.y=Math.atan2(x,z);
     }
     const gait=moving?Math.sin(clock.elapsedTime*10):0;
@@ -327,7 +339,8 @@ export default function CryptoRoom(props:{style?:RoomStyle;originName?:string;ca
 
   const walkToTarget=(next:Target)=>{
     setActive(null);
-    setMoveTarget({x:next.position[0],z:next.position[1],id:next.id+"-"+Date.now(),interaction:next.id});
+    const destination=next.walkPosition ?? next.position;
+    setMoveTarget({x:destination[0],z:destination[1],id:next.id+"-"+Date.now(),interaction:next.id});
   };
   const walkToFloor=(position:[number,number])=>{
     setActive(null);
