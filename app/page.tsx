@@ -117,8 +117,45 @@ const pfps: PFP[] = [
 
 const pick = <T,>(items: T[]) => items[Math.floor(Math.random() * items.length)];
 
+function localPfpIllustration(pfp: PFP) {
+  const seed = pfp.id.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  const skin = ["#d99b79", "#e6b18a", "#b9785f", "#f0c29b"][seed % 4];
+  const hair = ["#252126", "#3b2c27", "#704b37", "#d5b56f"][Math.floor(seed / 3) % 4];
+  const accent = pfp.accent || "#9bb4a1";
+  const penguin = pfp.name === "Pudgy Penguin";
+  const punk = pfp.name === "CryptoPunk";
+  const wojak = pfp.name === "Wojak";
+  const face = penguin
+    ? `<ellipse cx="120" cy="119" rx="65" ry="72" fill="#202a30"/><ellipse cx="120" cy="139" rx="43" ry="46" fill="#f4f1e8"/><circle cx="99" cy="112" r="7" fill="#172126"/><circle cx="141" cy="112" r="7" fill="#172126"/><path d="M108 128 L132 128 L120 143 Z" fill="#f3a33c"/><ellipse cx="120" cy="207" rx="59" ry="26" fill="#f1a13c"/>`
+    : punk
+      ? `<rect x="60" y="74" width="120" height="116" rx="8" fill="${skin}"/><rect x="60" y="62" width="120" height="25" fill="${hair}"/><rect x="72" y="103" width="26" height="20" fill="#20252b"/><rect x="142" y="103" width="26" height="20" fill="#20252b"/><rect x="108" y="137" width="24" height="10" fill="#7b5144"/><rect x="82" y="153" width="76" height="13" fill="#f2d6b4"/>`
+      : `<path d="M40 235 Q45 176 85 177 L155 177 Q195 180 200 235 Z" fill="${accent}"/><ellipse cx="120" cy="124" rx="57" ry="68" fill="${skin}"/><path d="${wojak ? "M61 111 Q50 36 120 47 Q190 36 179 111 L167 92 Q142 68 120 74 Q89 69 72 97 Z" : "M60 111 Q37 48 91 42 Q142 22 179 67 L179 114 Q155 72 120 76 Q87 71 60 111 Z"}" fill="${hair}"/><ellipse cx="99" cy="122" rx="6" ry="8" fill="#25252a"/><ellipse cx="141" cy="122" rx="6" ry="8" fill="#25252a"/><path d="M105 153 Q120 163 135 153" stroke="#6d3934" stroke-width="5" fill="none" stroke-linecap="round"/>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="${accent}"/><stop offset="1" stop-color="#f2e7d4"/></linearGradient></defs><rect width="240" height="240" rx="28" fill="url(#bg)"/><circle cx="190" cy="42" r="28" fill="#ffffff" opacity=".24"/><circle cx="36" cy="196" r="38" fill="#ffffff" opacity=".18"/>${face}<rect x="12" y="12" width="216" height="216" rx="22" fill="none" stroke="#ffffff" stroke-opacity=".5" stroke-width="3"/></svg>`;
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}
+
 function PfpImage({ pfp, className = "" }: { pfp: PFP; className?: string }) {
-  return <img className={`pfp-image ${className}`} src={pfp.image} alt={pfp.name} loading="eager" decoding="async" />;
+  // Always paint a local, deterministic portrait immediately. Remote NFT art is
+  // an enhancement, never a dependency for onboarding or the player's identity.
+  const fallback = useMemo(() => localPfpIllustration(pfp), [pfp.id, pfp.accent, pfp.name]);
+  const [source, setSource] = useState(fallback);
+  useEffect(() => {
+    let cancelled = false;
+    setSource(fallback);
+    const remote = new Image();
+    remote.onload = () => { if (!cancelled) setSource(pfp.image); };
+    remote.onerror = () => { /* Keep the local portrait visible. */ };
+    remote.src = pfp.image;
+    return () => { cancelled = true; remote.onload = null; remote.onerror = null; };
+  }, [pfp.id, pfp.image, fallback]);
+  return <img
+    className={`pfp-image ${className}`}
+    src={source}
+    alt={pfp.name}
+    loading="eager"
+    decoding="async"
+    onError={() => setSource(fallback)}
+  />;
 }
 
 function CitySheet({ selected, select, close, onGo }: { selected: string; select: (name: string) => void; close: () => void; onGo: (venue: Venue) => void }) {
@@ -126,7 +163,7 @@ function CitySheet({ selected, select, close, onGo }: { selected: string; select
   return <div className="city-overlay" role="dialog" aria-modal="true" aria-label="Crypto City map">
     <section className="city-sheet">
       <header><div><span>CRYPTO CITY · DAY 01</span><strong>Where are you going?</strong></div><button onClick={close} aria-label="Close city map">×</button></header>
-      <div className="city-mini-map"><div className="map-river" /><div className="map-road r1" /><div className="map-road r2" /><div className="map-road r3" /><div className="map-road r4" />{districts.map(district => <button key={district.name} className={`district-pin ${selected === district.name ? "selected" : ""}`} style={{ left: district.x, top: district.y }} onClick={() => select(district.name)}><span>{district.tag}</span><strong>{district.name}</strong></button>)}</div>
+      <div className="city-mini-map"><div className="map-atmosphere"><span>GENESIS CITY</span><b>● LIVE</b><small>08:42 AM · COMMUTERS MOVING</small></div><div className="map-river" /><div className="map-road r1" /><div className="map-road r2" /><div className="map-road r3" /><div className="map-road r4" /><div className="map-blocks" aria-hidden="true"><i className="block-tower tower-a"/><i className="block-tower tower-b"/><i className="block-tower tower-c"/><i className="block-tower tower-d"/><i className="block-tower tower-e"/><i className="block-tower tower-f"/></div><div className="map-traffic" aria-hidden="true"><i/><i/><i/></div><div className="map-pedestrians" aria-hidden="true"><i/><i/><i/><i/><i/></div><div className="map-you-pin"><b>YOU</b><i>◆</i></div>{districts.map(district => <button key={district.name} className={`district-pin ${selected === district.name ? "selected" : ""}`} style={{ left: district.x, top: district.y }} onClick={() => select(district.name)}><span>{district.tag}</span><strong>{district.name}</strong></button>)}</div>
       <div className="nearby-card"><div><span>{venue.type}</span><strong>{venue.name}</strong><p>{venue.npc} · {venue.role}</p></div><div className="nearby-actions"><button onClick={() => onGo(venue)}>ENTER VENUE →</button></div></div>
     </section>
   </div>;
@@ -239,6 +276,14 @@ export default function Home() {
   ]);
 
   useEffect(() => {
+    // Android Chrome can report a desktop-width viewport when "Desktop site"
+    // is enabled. Detect touch capability independently of viewport width.
+    const touchLayout = navigator.maxTouchPoints > 0 || "ontouchstart" in window;
+    document.documentElement.classList.toggle("touch-layout", touchLayout);
+    return () => document.documentElement.classList.remove("touch-layout");
+  }, []);
+
+  useEffect(() => {
     try {
       const saved = window.localStorage.getItem("crypto-life-day-one");
       if (saved) {
@@ -307,7 +352,7 @@ export default function Home() {
       setNeeds(current => ({ ...current, energy: 100, hunger: Math.max(0, current.hunger - 12), fun: Math.min(100, current.fun + 5) }));
       setHour(current => (current + 8) % 24);
       setLifeLog(current => [`${String(hour).padStart(2, "0")}:00 · Slept at Block 7 · a new part of the city woke up`, ...current].slice(0, 4));
-      showNotice("You slept through eight hours · energy restored");
+      showNotice("You sleep through eight hours. Outside, Genesis Hub changes from morning to afternoon.");
       return;
     }
     if (need === "CASH") {
@@ -315,13 +360,14 @@ export default function Home() {
       setReputation(current => Math.min(100, current + 1));
       setHour(current => (current + 2) % 24);
       setLifeLog(current => [`${String(hour).padStart(2, "0")}:00 · Remote crypto task delivered · +$${amount}`, ...current].slice(0, 4));
-      showNotice(`Contract delivered · +$${amount} · reputation up`);
+      showNotice(`Bounty submitted. ${amount} lands in your balance, and your name gets a little more familiar.`);
       return;
     }
     const key = need.toLowerCase() as "energy" | "hunger" | "fun" | "hygiene";
     if (key in needs) setNeeds(current => ({ ...current, [key]: Math.min(100, current[key] + amount) }));
     setHour(current => (current + 1) % 24);
-    showNotice(`${need.toLowerCase()} restored · your day keeps moving`);
+    const stories:Record<string,string> = { HYGIENE:"You wash up, change into a clean fit, and feel ready to head out.", HUNGER:"You eat at home instead of spending money outside.", FUN:"You take a breather on the sofa and let your head clear." };
+    showNotice(stories[need] ?? "A little time passes at home.");
   };
 
   const commitEvent = (choice: EventChoice) => {
@@ -449,9 +495,9 @@ export default function Home() {
           </div>
           <div className="city-map-card">
             <div className="map-card-head"><span>CRYPTO CITY</span><b>DAY 01 · 08:42</b></div>
-            <div className="city-map">
-              <div className="map-river" />
+            <div className="city-map"><div className="map-atmosphere"><span>GENESIS CITY</span><b>● LIVE</b><small>08:42 AM · COMMUTERS MOVING</small></div><div className="map-river" />
               <div className="map-road r1" /><div className="map-road r2" /><div className="map-road r3" /><div className="map-road r4" />
+              <div className="map-blocks" aria-hidden="true"><i className="block-tower tower-a"/><i className="block-tower tower-b"/><i className="block-tower tower-c"/><i className="block-tower tower-d"/><i className="block-tower tower-e"/><i className="block-tower tower-f"/></div><div className="map-traffic" aria-hidden="true"><i/><i/><i/></div><div className="map-pedestrians" aria-hidden="true"><i/><i/><i/><i/><i/></div>
               {districts.map(d => <button key={d.name} className={`district-pin ${selected.name === d.name ? "selected" : ""}`} style={{left:d.x,top:d.y}} onClick={() => setSelectedDistrict(d.name)}><span>{d.tag}</span><strong>{d.name}</strong></button>)}
               <div className="you-marker"><span>YOU</span><b>◆</b></div>
             </div>
@@ -601,7 +647,7 @@ export default function Home() {
               <strong>{name.split(" ")[0]} just spawned.</strong>
               <small>The city is already moving.</small>
               <div className="origin-pfp-stack">
-                {[pfps[0], pfps[12], pfps[17], pfps[29]].map(item => <PfpImage key={item.id} pfp={item} />)}
+                {[pfps[0], pfps[4], pfps[14], pfps[24]].map(item => <PfpImage key={item.id} pfp={item} />)}
               </div>
               <p>Thousands of lives. One shared timeline.</p>
             </div>
@@ -620,7 +666,7 @@ export default function Home() {
       <section className="signup-layout">
         <div className="signup-copy">
           <div className="floating-pfps">
-            {pfps.map((item, index) => <div className={`float-pfp f${index + 1}`} key={item.id}><PfpImage pfp={item} /></div>)}
+            {[pfps[0], pfps[4], pfps[14], pfps[24], pfps[29]].map((item, index) => <div className={`float-pfp f${index + 1}`} key={item.id}><PfpImage pfp={item} /></div>)}
           </div>
           <span className="eyebrow">A LIFE SIM FOR THE CRYPTO-NATIVE</span>
           <h1>Make a life.<br /><span>Not a profile.</span></h1>

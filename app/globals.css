@@ -150,7 +150,7 @@ button:disabled{cursor:not-allowed}
 .home-action-buttons button:first-child{background:#1f251d;color:#fffdf6}
 .home-action-buttons button:last-child{background:#eef1e8;color:#596255}
 .home-toast{position:absolute;top:24px;left:50%;transform:translateX(-50%);z-index:15;background:#1f251d;color:#fffdf6;border-radius:999px;padding:10px 15px;font:9px 'Space Mono';box-shadow:0 12px 28px rgba(20,28,19,.22)}
-.proximity-prompt{position:absolute;left:50%;bottom:26px;z-index:10;min-width:235px;transform:translateX(-50%);padding:11px 14px;border:1px solid rgba(214,236,168,.85);border-radius:14px;background:rgba(24,31,23,.92);color:#fff;text-align:left;box-shadow:0 14px 34px rgba(13,18,12,.25);backdrop-filter:blur(10px)}.proximity-prompt span,.proximity-prompt strong{display:block}.proximity-prompt span{color:#b9e766;font:8px 'Space Mono';letter-spacing:.06em}.proximity-prompt strong{margin-top:5px;font-size:11px}.proximity-prompt b{float:right;color:#b9e766;font-size:16px}.touch-walk{position:absolute;left:18px;bottom:18px;z-index:10;display:none;grid-template-columns:42px 42px 42px;grid-template-rows:42px 42px;gap:4px}.touch-walk button{display:grid;place-items:center;border:1px solid rgba(255,255,255,.18);border-radius:11px;background:rgba(24,31,23,.76);color:#fff;font-size:18px;backdrop-filter:blur(8px);touch-action:none}.touch-walk button:first-child{grid-column:2}.touch-walk button:nth-child(2){grid-column:1;grid-row:2}.touch-walk button:nth-child(3){grid-column:2;grid-row:2}.touch-walk button:nth-child(4){grid-column:3;grid-row:2}
+.proximity-prompt{position:absolute;left:50%;bottom:26px;z-index:10;min-width:235px;transform:translateX(-50%);padding:11px 14px;border:1px solid rgba(214,236,168,.85);border-radius:14px;background:rgba(24,31,23,.92);color:#fff;text-align:left;box-shadow:0 14px 34px rgba(13,18,12,.25);backdrop-filter:blur(10px)}.proximity-prompt span,.proximity-prompt strong{display:block}.proximity-prompt span{color:#b9e766;font:8px 'Space Mono';letter-spacing:.06em}.proximity-prompt strong{margin-top:5px;font-size:11px}.proximity-prompt b{float:right;color:#b9e766;font-size:16px}.touch-joystick{position:absolute;left:18px;bottom:18px;z-index:10;display:none;width:124px;height:124px;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.2);border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.1),rgba(20,28,20,.62));box-shadow:0 12px 30px rgba(10,15,10,.2);touch-action:none;user-select:none;-webkit-user-select:none;--joy-x:0px;--joy-y:0px}.joystick-ring{display:grid;place-items:center;width:56px;height:56px;border:1px solid rgba(255,255,255,.3);border-radius:50%;background:rgba(245,246,235,.16);box-shadow:0 4px 14px rgba(0,0,0,.2);transform:translate(var(--joy-x),var(--joy-y));pointer-events:none}.joystick-ring i{display:block;width:32px;height:32px;border:1px solid rgba(255,255,255,.6);border-radius:50%;background:linear-gradient(145deg,#d7e8b1,#8eb94d);box-shadow:0 3px 10px rgba(0,0,0,.2)}.touch-joystick small{position:absolute;bottom:17px;color:rgba(255,255,255,.82);font:7px 'Space Mono';letter-spacing:.12em;pointer-events:none}
 .room{background:#b9c8ae}.crypto-room-wrap{background:#b9c8ae}.home-scene{grid-template-columns:minmax(310px,.55fr) minmax(600px,1.45fr);gap:38px}.room{height:min(740px,78vh);min-height:560px}.home-hint{background:rgba(20,28,20,.88)}
 .city-world-label{position:absolute;top:18px;left:18px;z-index:8;display:flex;flex-direction:column;gap:3px;padding:10px 12px;border:1px solid rgba(255,255,255,.5);border-radius:12px;background:rgba(248,247,237,.9);box-shadow:0 10px 28px rgba(30,42,31,.12);pointer-events:none}.city-world-label span{color:#6d842c;font:8px 'Space Mono';letter-spacing:.07em}.city-world-label strong{font-size:11px;letter-spacing:-.02em}
 @media(max-width:650px){
@@ -160,13 +160,25 @@ button:disabled{cursor:not-allowed}
   .home-action{padding:8px 6px;border-radius:10px}
   .home-action strong{font-size:9px}
   .home-action span{font-size:6px}
-  .touch-walk{display:grid}.home-hint{bottom:116px}.proximity-prompt{bottom:26px;left:auto;right:12px;transform:none;min-width:0;max-width:calc(100% - 180px)}
+  .touch-joystick{display:flex}.home-hint{left:12px;bottom:155px;max-width:calc(100% - 24px);white-space:normal;line-height:1.4}.proximity-prompt{bottom:22px;left:auto;right:12px;transform:none;min-width:0;max-width:calc(100% - 165px);font-size:10px}.city-world-label{top:10px;left:10px;max-width:calc(100% - 20px);padding:8px 9px}.city-world-label strong{font-size:9px}
 }
 
 
-/* Starter apartment: give the widened floor plan enough breathing room on phones. */
-.crypto-room-wrap canvas{touch-action:none}
-@media(max-width:650px){.crypto-room-wrap{min-height:600px}.room{height:520px}.home-hint{bottom:112px}.home-interactions{bottom:10px}}
+/* Mobile-first game stage: keep the world fitted to the viewport and reserve room for controls. */
+.crypto-room-wrap{height:100%;min-height:0;overflow:hidden}
+.crypto-room-wrap canvas{touch-action:none;width:100%!important;height:100%!important;display:block}
+@media(max-width:650px){
+  .crypto-room-wrap{height:min(72dvh,680px);min-height:500px}
+  .room{height:auto;min-height:0}
+  .home-scene{padding:12px 10px 28px;gap:18px}
+  .home-scene .room{border-radius:22px}
+  .home-hint{bottom:154px}
+  .home-interactions{bottom:8px;left:8px;right:8px;gap:4px}
+  .home-action{padding:7px 4px}
+  .home-action strong{font-size:8px}
+  .home-action span{font-size:5px}
+}
+@media(max-width:380px){.touch-joystick{width:106px;height:106px;left:12px;bottom:12px}.proximity-prompt{max-width:calc(100% - 140px)}.home-hint{bottom:132px}}
 
 /* The phone makes the city present even while the player is at home. */
 .needs small{display:block;margin-top:6px;color:#687166;font:8px 'Space Mono'}.phone-trigger{min-height:40px;padding:0 11px;border:1px solid #cbd1c2;border-radius:11px;background:#f7f8f1;color:#465045;font:9px 'Space Mono';letter-spacing:.04em}.phone-trigger span{margin-right:5px;color:#6c9421}.phone-trigger:focus-visible,.phone-close:focus-visible,.phone-nav button:focus-visible,.phone-content button:focus-visible{outline:3px solid #587c15;outline-offset:3px}.life-notice{position:fixed;z-index:45;bottom:28px;left:50%;max-width:calc(100vw - 32px);transform:translateX(-50%);border-radius:14px;background:#1f251d;color:#fffdf6;padding:13px 17px;box-shadow:0 16px 40px rgba(20,28,19,.28);font:11px 'Space Mono';letter-spacing:.02em}
@@ -190,3 +202,339 @@ button:disabled{cursor:not-allowed}
 .market-tape{display:flex;align-items:center;gap:8px;margin-left:auto;margin-right:18px}.market-tape span{display:flex;gap:6px;align-items:center;padding:7px 9px;border:1px solid #d6dccd;border-radius:9px;background:#f8faf4;font:8px 'Space Mono';white-space:nowrap}.market-tape b{color:#66851e}.market-tape strong{color:#434e40}.citywire{display:block;width:100%;max-width:550px;margin-top:14px;padding:11px 13px;border-left:3px solid #88ab3b;background:rgba(255,253,246,.65);text-align:left}.citywire:hover{background:#fffdf6;border-left-color:#597c1a}.citywire span,.citywire small{display:block;font:8px 'Space Mono';letter-spacing:.06em}.citywire span{color:#66831f}.citywire strong{display:block;margin:5px 0;color:#334033;font-size:12px}.citywire small{color:#7b8678;text-transform:uppercase}.venue-card{background:linear-gradient(145deg,#fffdf6,#edf3e4)}.venue-npc{display:flex;align-items:center;gap:9px;margin:18px 0 0;padding:10px;border:1px solid #d4dec7;border-radius:13px;background:rgba(255,255,255,.6)}.venue-npc>b{display:grid;place-items:center;width:33px;height:33px;border-radius:10px;background:#d8e8bf;color:#4e6d17;font-size:13px}.venue-npc strong,.venue-npc span{display:block}.venue-npc strong{font-size:12px}.venue-npc span{margin-top:3px;color:#71806b;font-size:9px}
 @media(max-width:1180px){.market-tape{order:3;width:100%;margin:0;justify-content:center}.game-topbar{height:auto;min-height:76px;flex-wrap:wrap;padding-top:10px;padding-bottom:10px}.home-scene{min-height:calc(100vh - 112px)}}
 @media(max-width:600px){.market-tape{display:none}.citywire{margin-top:12px}.citywire strong{font-size:11px}.life-ledger{grid-template-columns:1fr 1fr}.life-ledger button{grid-column:1/-1}.life-ledger>div:nth-of-type(3){grid-column:1/-1}}
+
+
+/* Mobile controls and touch-first layout. This also covers Android Chrome's
+   "Desktop site" mode, where the viewport can remain wider than the device. */
+.mobile-dpad{display:none;position:absolute;left:12px;bottom:14px;z-index:12;grid-template-columns:repeat(3,40px);grid-template-rows:repeat(3,40px);gap:4px;padding:7px;border:1px solid rgba(255,255,255,.18);border-radius:18px;background:rgba(22,29,21,.76);box-shadow:0 12px 28px rgba(0,0,0,.25);backdrop-filter:blur(8px);touch-action:none;user-select:none;-webkit-user-select:none}
+.mobile-dpad button{display:grid;place-items:center;min-width:0;min-height:0;border:1px solid rgba(255,255,255,.2);border-radius:11px;background:rgba(247,248,241,.14);color:#fffdf6;font-size:18px;font-weight:800;touch-action:none;user-select:none;-webkit-user-select:none}
+.mobile-dpad button:active{background:#b7ef45;color:#1d2719;transform:scale(.96)}
+.mobile-dpad button:nth-child(1){grid-column:2;grid-row:1}
+.mobile-dpad button:nth-child(2){grid-column:1;grid-row:2}
+.mobile-dpad .dpad-center{grid-column:2;grid-row:2;display:grid;place-items:center;border:1px solid rgba(255,255,255,.12);border-radius:11px;color:#b7ef45;font:7px 'Space Mono';letter-spacing:.04em}
+.mobile-dpad button:nth-child(4){grid-column:3;grid-row:2}
+.mobile-dpad button:nth-child(5){grid-column:2;grid-row:3}
+.crypto-room-wrap{isolation:isolate;min-width:0}
+.crypto-room-wrap canvas{touch-action:none}
+.home-scene,.room,.crypto-room-wrap{min-width:0}
+@media(max-width:980px){
+  .home-scene{grid-template-columns:minmax(0,1fr)!important;width:100%;min-width:0;gap:20px;padding:20px clamp(14px,4vw,30px) 36px}
+  .home-scene .room{width:100%;height:auto;min-height:0;border-radius:24px}
+  .crypto-room-wrap{height:min(68dvh,620px);min-height:440px}
+  .scene-copy{order:1;min-width:0}
+  .life-ledger{position:static;width:calc(100% - 28px);margin:0 14px 26px}
+}
+@media(max-width:650px){
+  .game-topbar{min-height:60px;padding:8px 12px;gap:8px}
+  .game-topbar .brand{flex:1}
+  .top-profile{margin-left:auto}
+  .home-scene{padding:12px 10px 26px;gap:16px}
+  .home-scene .room{border-radius:20px}
+  .crypto-room-wrap{height:min(68dvh,590px);min-height:430px}
+  .city-world-label{max-width:calc(100% - 24px);padding:8px 9px}
+  .city-world-label strong{font-size:9px}
+  .home-hint{left:10px;right:10px;bottom:153px;max-width:none;white-space:normal;line-height:1.4;font-size:7px}
+  .proximity-prompt{left:auto;right:10px;bottom:16px;transform:none;min-width:0;width:calc(100% - 166px);max-width:250px;padding:10px}
+  .mobile-dpad{display:grid}
+  .life-ledger{grid-template-columns:1fr 1fr;gap:5px}
+  .life-ledger button{grid-column:1/-1}
+}
+@media(max-width:380px){
+  .crypto-room-wrap{height:520px;min-height:420px}
+  .mobile-dpad{left:8px;bottom:10px;grid-template-columns:repeat(3,35px);grid-template-rows:repeat(3,35px);gap:3px;padding:6px}
+  .mobile-dpad button{font-size:16px}
+  .proximity-prompt{width:calc(100% - 143px);right:8px;padding:8px}
+  .home-hint{bottom:139px}
+}
+/* Touch capability is more reliable than viewport width on Android when the
+   browser has been switched to Desktop site. */
+html.touch-layout .market-tape{display:none}
+html.touch-layout .game-topbar{height:auto;min-height:60px;flex-wrap:wrap;gap:8px;padding:8px 12px}
+html.touch-layout .game-topbar .brand{flex:1}
+html.touch-layout .top-profile{margin-left:auto}
+html.touch-layout .home-scene{display:grid;grid-template-columns:minmax(0,1fr)!important;width:100%;min-width:0;gap:16px;padding:12px 10px 26px;align-items:stretch}
+html.touch-layout .home-scene .room{order:0;width:100%;height:auto;min-height:0;border-radius:20px}
+html.touch-layout .crypto-room-wrap{height:min(68dvh,590px);min-height:430px}
+html.touch-layout .scene-copy{order:1;min-width:0}
+html.touch-layout .life-ledger{position:static;width:calc(100% - 20px);margin:0 10px 24px;display:grid;grid-template-columns:1fr 1fr;gap:5px}
+html.touch-layout .life-ledger button{grid-column:1/-1}
+html.touch-layout .home-hint{left:10px;right:10px;bottom:153px;max-width:none;white-space:normal;line-height:1.4;font-size:7px}
+html.touch-layout .proximity-prompt{left:auto;right:10px;bottom:16px;transform:none;min-width:0;width:calc(100% - 166px);max-width:250px;padding:10px}
+html.touch-layout .mobile-dpad{display:grid}
+@media(max-width:380px){
+  html.touch-layout .crypto-room-wrap{height:520px;min-height:420px}
+  html.touch-layout .mobile-dpad{left:8px;bottom:10px;grid-template-columns:repeat(3,35px);grid-template-rows:repeat(3,35px);gap:3px;padding:6px}
+  html.touch-layout .proximity-prompt{width:calc(100% - 143px);right:8px;padding:8px}
+  html.touch-layout .home-hint{bottom:139px}
+}
+
+
+/* Responsive world pass: the apartment must fit the actual viewport, including
+   Android browsers using "Desktop site" (often around 980px CSS wide). */
+@media (max-width: 1000px) {
+  .home-scene {
+    grid-template-columns: minmax(0, 1fr) !important;
+    min-height: 0;
+    width: 100%;
+    gap: 18px;
+    padding: 14px clamp(12px, 3vw, 28px) 30px;
+    align-items: stretch;
+  }
+  .home-scene .room {
+    order: -1;
+    width: 100%;
+    min-width: 0;
+    height: min(66dvh, 620px);
+    min-height: 430px;
+    border-radius: 24px;
+  }
+  .home-scene .scene-copy {
+    order: 1;
+    min-width: 0;
+  }
+  .crypto-room-wrap {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+  }
+  .game-topbar {
+    gap: 8px 12px;
+    padding-inline: clamp(12px, 3vw, 28px);
+  }
+  .game-topbar .top-status {
+    display: none;
+  }
+}
+@media (max-width: 650px) {
+  .home-scene {
+    padding: 8px 8px 24px;
+    gap: 14px;
+  }
+  .home-scene .room {
+    height: min(64dvh, 560px);
+    min-height: 410px;
+    border-radius: 18px;
+  }
+  .scene-copy h1 {
+    font-size: clamp(50px, 15vw, 72px);
+  }
+  .scene-copy > p {
+    font-size: 15px;
+    margin: 16px 0;
+  }
+  .game-topbar {
+    min-height: 60px;
+    padding: 8px 12px;
+  }
+  .top-profile {
+    margin-left: auto;
+  }
+  .top-profile > span {
+    display: none;
+  }
+  .mobile-dpad {
+    position: absolute;
+    z-index: 20;
+    left: 12px;
+    bottom: 12px;
+    width: 132px;
+    height: 132px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 4px;
+    padding: 5px;
+    border: 1px solid rgba(255,255,255,.18);
+    border-radius: 22px;
+    background: rgba(22,29,21,.62);
+    box-shadow: 0 10px 28px rgba(0,0,0,.2);
+    backdrop-filter: blur(8px);
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .mobile-dpad button {
+    display: grid;
+    place-items: center;
+    min-width: 0;
+    min-height: 0;
+    padding: 0;
+    border: 1px solid rgba(255,255,255,.18);
+    border-radius: 12px;
+    background: rgba(245,247,236,.94);
+    color: #263024;
+    font-size: 18px;
+    font-weight: 800;
+    touch-action: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mobile-dpad button:active {
+    background: #b7ef45;
+    transform: scale(.96);
+  }
+  .mobile-dpad button:nth-of-type(1) { grid-column: 2; grid-row: 1; }
+  .mobile-dpad button:nth-of-type(2) { grid-column: 1; grid-row: 2; }
+  .mobile-dpad .dpad-center {
+    display: grid;
+    place-items: center;
+    grid-column: 2;
+    grid-row: 2;
+    color: rgba(255,255,255,.82);
+    font: 7px 'Space Mono', monospace;
+    letter-spacing: .05em;
+  }
+  .mobile-dpad button:nth-of-type(3) { grid-column: 3; grid-row: 2; }
+  .mobile-dpad button:nth-of-type(4) { grid-column: 2; grid-row: 3; }
+  .home-hint {
+    left: 12px;
+    right: 12px;
+    bottom: 154px;
+    width: auto;
+    max-width: none;
+    white-space: normal;
+    line-height: 1.35;
+    font-size: 7px;
+  }
+  .city-world-label {
+    top: 9px;
+    left: 9px;
+    max-width: calc(100% - 18px);
+  }
+  .city-world-label strong {
+    font-size: 9px;
+  }
+  .proximity-prompt {
+    left: auto;
+    right: 10px;
+    bottom: 14px;
+    max-width: calc(100% - 160px);
+    min-width: 0;
+    transform: none;
+    padding: 10px;
+  }
+}
+@media (min-width: 651px) and (max-width: 1000px) {
+  .mobile-dpad {
+    position: absolute;
+    z-index: 20;
+    left: 16px;
+    bottom: 16px;
+    width: 138px;
+    height: 138px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 4px;
+    padding: 5px;
+    border: 1px solid rgba(255,255,255,.18);
+    border-radius: 22px;
+    background: rgba(22,29,21,.62);
+    backdrop-filter: blur(8px);
+    touch-action: none;
+  }
+  .mobile-dpad button {
+    display: grid;
+    place-items: center;
+    min-width: 0;
+    min-height: 0;
+    padding: 0;
+    border: 1px solid rgba(255,255,255,.18);
+    border-radius: 12px;
+    background: rgba(245,247,236,.94);
+    color: #263024;
+    font-size: 18px;
+    font-weight: 800;
+    touch-action: none;
+  }
+  .mobile-dpad button:nth-of-type(1) { grid-column: 2; grid-row: 1; }
+  .mobile-dpad button:nth-of-type(2) { grid-column: 1; grid-row: 2; }
+  .mobile-dpad .dpad-center { display:grid;place-items:center;grid-column:2;grid-row:2;color:rgba(255,255,255,.82);font:7px 'Space Mono'; }
+  .mobile-dpad button:nth-of-type(3) { grid-column: 3; grid-row: 2; }
+  .mobile-dpad button:nth-of-type(4) { grid-column: 2; grid-row: 3; }
+}
+@media (min-width: 1001px) {
+  .mobile-dpad { display: none; }
+}
+
+
+/* Final touch-device overrides: the room must be the first thing seen, even
+   when Android's Desktop site mode activates the wider breakpoints. */
+html.touch-layout .home-scene {
+  grid-template-columns: minmax(0, 1fr) !important;
+  min-width: 0;
+}
+html.touch-layout .home-scene .room {
+  order: -1 !important;
+  width: 100%;
+  height: auto;
+  min-width: 0;
+  min-height: 0;
+}
+html.touch-layout .crypto-room-wrap {
+  height: min(64dvh, 560px) !important;
+  min-height: 410px !important;
+  width: 100%;
+}
+html.touch-layout .mobile-dpad {
+  display: grid !important;
+}
+html.touch-layout .scene-copy {
+  order: 1 !important;
+  min-width: 0;
+}
+@media (max-width: 650px) {
+  html.touch-layout .crypto-room-wrap {
+    height: min(62dvh, 510px) !important;
+    min-height: 400px !important;
+  }
+  html.touch-layout .home-scene .room {
+    border-radius: 18px;
+  }
+}
+
+
+/* Living-city map pass: recognizable blocks, moving traffic and residents. */
+.city-mini-map,.city-map{isolation:isolate;background:linear-gradient(145deg,#c7d8bd 0%,#dce6cc 38%,#b9ceb0 100%)}
+.map-atmosphere{position:absolute;z-index:2;top:13px;left:15px;display:grid;grid-template-columns:auto auto;gap:4px 12px;align-items:center;padding:9px 11px;border:1px solid rgba(255,255,255,.52);border-radius:12px;background:rgba(29,48,36,.82);color:#f7f6e9;box-shadow:0 8px 24px rgba(30,45,31,.14);backdrop-filter:blur(8px)}
+.map-atmosphere span{font:9px 'Space Mono';letter-spacing:.1em}
+.map-atmosphere b{color:#c4f47b;font:8px 'Space Mono';text-align:right}
+.map-atmosphere small{grid-column:1/-1;color:#cbd7c4;font:7px 'Space Mono';letter-spacing:.04em}
+.map-blocks{position:absolute;inset:0;z-index:1;pointer-events:none}
+.block-tower{position:absolute;display:block;width:clamp(24px,5%,50px);height:clamp(34px,9%,80px);border:1px solid rgba(44,61,44,.18);border-radius:3px 3px 1px 1px;background:linear-gradient(90deg,#7f9c7d,#a9c19b 60%,#6d8a6c);box-shadow:7px 8px 0 rgba(70,92,67,.18),inset 0 5px 0 rgba(255,255,255,.16)}
+.block-tower:after{position:absolute;inset:9px 5px;content:"";background:repeating-linear-gradient(0deg,transparent 0 7px,rgba(238,245,211,.68) 7px 10px),repeating-linear-gradient(90deg,transparent 0 8px,rgba(238,245,211,.55) 8px 11px)}
+.tower-a{left:9%;top:22%;height:22%;width:6%;background:linear-gradient(90deg,#627b71,#9ab7a0)}
+.tower-b{left:18%;top:57%;height:17%;width:5%}
+.tower-c{left:38%;top:15%;height:24%;width:7%;background:linear-gradient(90deg,#8b9e84,#bdc8a5)}
+.tower-d{left:66%;top:14%;height:21%;width:6%;background:linear-gradient(90deg,#7c9a8e,#aac6ad)}
+.tower-e{left:78%;top:52%;height:25%;width:7%;background:linear-gradient(90deg,#6b8478,#a3b79b)}
+.tower-f{left:47%;top:68%;height:17%;width:5%;background:linear-gradient(90deg,#a18f6d,#d1bd91)}
+.city-mini-map .map-blocks{opacity:.74}
+.city-map .map-blocks{opacity:.88}
+.map-traffic{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden}
+.map-traffic i{position:absolute;display:block;width:14px;height:7px;border:1px solid rgba(255,255,255,.72);border-radius:3px;background:#d86d4f;box-shadow:0 2px 5px rgba(42,49,36,.25);animation:city-drive 10s linear infinite}
+.map-traffic i:nth-child(1){top:37%;left:-4%;animation-duration:11s}
+.map-traffic i:nth-child(2){top:62%;left:102%;background:#e7d18a;animation-duration:14s;animation-direction:reverse}
+.map-traffic i:nth-child(3){top:80%;left:-6%;background:#668dba;animation-duration:16s;animation-delay:-6s}
+.map-pedestrians{position:absolute;inset:0;z-index:3;pointer-events:none}
+.map-pedestrians i{position:absolute;width:5px;height:5px;border-radius:50%;background:#f9f0d9;box-shadow:0 4px 0 1px #445a43;animation:city-walk 3.4s ease-in-out infinite}
+.map-pedestrians i:nth-child(1){left:31%;top:47%}
+.map-pedestrians i:nth-child(2){left:59%;top:31%;animation-delay:-1s}
+.map-pedestrians i:nth-child(3){left:70%;top:74%;animation-delay:-2s}
+.map-pedestrians i:nth-child(4){left:42%;top:61%;animation-delay:-.5s}
+.map-pedestrians i:nth-child(5){left:15%;top:78%;animation-delay:-2.6s}
+.map-you-pin{position:absolute;z-index:7;left:48%;top:50%;display:grid;justify-items:center;gap:3px;transform:translate(-50%,-50%);pointer-events:none}
+.map-you-pin b{padding:4px 7px;border-radius:6px;background:#1e2a20;color:#fffdf6;font:7px 'Space Mono';letter-spacing:.1em}
+.map-you-pin i{display:grid;place-items:center;width:24px;height:24px;border:2px solid #f8f6e9;border-radius:50%;background:#b4e65f;color:#26351e;font-size:11px;font-style:normal;box-shadow:0 0 0 6px rgba(183,239,69,.22);animation:you-pulse 2s ease-out infinite}
+.city-mini-map .map-you-pin{left:48%;top:50%}
+.city-mini-map .map-atmosphere{top:10px;left:10px;padding:7px 8px}
+.city-mini-map .map-atmosphere span{font-size:7px}
+.city-mini-map .map-atmosphere small{font-size:6px}
+.district-pin{z-index:5;transition:transform .18s ease,box-shadow .18s ease}
+.district-pin:before{position:absolute;inset:-5px;z-index:-1;border:1px solid rgba(255,255,255,.6);border-radius:13px;content:"";opacity:0;transform:scale(.82);transition:opacity .18s ease,transform .18s ease}
+.district-pin:hover,.district-pin.selected{transform:translate(-50%,-50%) scale(1.06);box-shadow:0 9px 25px rgba(29,43,26,.28)}
+.district-pin.selected:before{opacity:1;transform:scale(1)}
+@keyframes city-drive{0%{transform:translateX(0)}100%{transform:translateX(1200%)}}
+@keyframes city-walk{0%,100%{transform:translate(0,0)}50%{transform:translate(6px,-4px)}}
+@keyframes you-pulse{0%{box-shadow:0 0 0 0 rgba(183,239,69,.4)}100%{box-shadow:0 0 0 11px rgba(183,239,69,0)}}
+@media(max-width:600px){.map-atmosphere{top:8px;left:8px;padding:6px 8px;gap:3px 7px}.map-atmosphere span{font-size:7px}.map-atmosphere small{font-size:6px}.block-tower{box-shadow:4px 5px 0 rgba(70,92,67,.16)}.map-you-pin i{width:19px;height:19px}}
+@media(prefers-reduced-motion:reduce){.map-traffic i,.map-pedestrians i,.map-you-pin i{animation:none}}
