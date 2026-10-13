@@ -69,7 +69,7 @@ function Citizen({position, color, hair, scale=1}:{position:[number,number];colo
   </group>;
 }
 
-function StarterApartment() {
+function StarterApartment({onGroundTap}:{onGroundTap:(position:[number,number])=>void}) {
   const floorboards = Array.from({ length: 18 }, (_, i) => i);
   const wallArt = [
     { x: -1.25, color: "#d6b16b" },
@@ -81,6 +81,9 @@ function StarterApartment() {
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.08, 0]} receiveShadow>
       <planeGeometry args={[16, 12]} />
       <meshStandardMaterial color="#c4a982" roughness={0.92} />
+    </mesh>
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.065, 0]} onPointerDown={(event) => { event.stopPropagation(); onGroundTap([event.point.x, event.point.z]); }}>
+      <planeGeometry args={[15.7, 11.6]} /><meshBasicMaterial transparent opacity={0} depthWrite={false} />
     </mesh>
     {floorboards.map((i) => <Box key={i} position={[-7.2 + i * 0.84, -0.025, 0]} size={[0.025, 0.025, 11.7]} color="#9b7755" />)}
     {/* Back and side walls; front stays open so the player can read the space. */}
@@ -153,7 +156,7 @@ function StarterApartment() {
     <Box position={[0, 0.04, 5.72]} size={[2.2, 0.08, 0.22]} color="#8c6c4b" />
   </>;
 }
-function Player({accent,onNearby,touchDirection}:{accent:string;onNearby:(target:Target|null)=>void;touchDirection:{x:number;z:number}|null}) {
+function Player({accent,onNearby,touchDirection,moveTarget,onArrive}:{accent:string;onNearby:(target:Target|null)=>void;touchDirection:{x:number;z:number}|null;moveTarget:{x:number;z:number;id:string;interaction:Interaction|null}|null;onArrive:(interaction:Interaction|null)=>void}) {
   const ref=useRef<Group>(null);
   const leftArm=useRef<Group>(null);
   const rightArm=useRef<Group>(null);
@@ -161,6 +164,7 @@ function Player({accent,onNearby,touchDirection}:{accent:string;onNearby:(target
   const rightLeg=useRef<Group>(null);
   const keys=useRef<Set<string>>(new Set());
   const nearbyId=useRef<Interaction|null>(null);
+  const arrivedId=useRef<string|null>(null);
   const {camera}=useThree();
 
   useEffect(()=>{
@@ -182,19 +186,30 @@ function Player({accent,onNearby,touchDirection}:{accent:string;onNearby:(target
   useFrame(({clock},delta)=>{
     if(!ref.current)return;
     let x=0,z=0;
-    const pressed=keys.current;
-    if(pressed.has("a")||pressed.has("arrowleft"))x-=1;
-    if(pressed.has("d")||pressed.has("arrowright"))x+=1;
-    if(pressed.has("w")||pressed.has("arrowup"))z-=1;
-    if(pressed.has("s")||pressed.has("arrowdown"))z+=1;
-    if(touchDirection){x+=touchDirection.x;z+=touchDirection.z;}
-    const moving=x!==0||z!==0;
+    let moving=false;
+    if(moveTarget && arrivedId.current!==moveTarget.id){
+      const dx=moveTarget.x-ref.current.position.x;
+      const dz=moveTarget.z-ref.current.position.z;
+      const distance=Math.hypot(dx,dz);
+      if(distance<0.22){
+        ref.current.position.x=moveTarget.x;
+        ref.current.position.z=moveTarget.z;
+        arrivedId.current=moveTarget.id;
+        onArrive(moveTarget.interaction);
+      } else { x=dx/distance; z=dz/distance; moving=true; }
+    } else {
+      const pressed=keys.current;
+      if(pressed.has("a")||pressed.has("arrowleft"))x-=1;
+      if(pressed.has("d")||pressed.has("arrowright"))x+=1;
+      if(pressed.has("w")||pressed.has("arrowup"))z-=1;
+      if(pressed.has("s")||pressed.has("arrowdown"))z+=1;
+      if(touchDirection){x+=touchDirection.x;z+=touchDirection.z;}
+      moving=x!==0||z!==0;
+      if(moving){const length=Math.hypot(x,z);x/=length;z/=length;}
+    }
     if(moving){
-      const length=Math.hypot(x,z);
-      x/=length;z/=length;
-      ref.current.position.x=Math.max(-6.65,Math.min(6.65,ref.current.position.x+x*delta*3.2));
-      ref.current.position.z=Math.max(-4.65,Math.min(5.05,ref.current.position.z+z*delta*3.2));
-      // Face the direction of travel rather than walking backwards.
+      ref.current.position.x=Math.max(-6.65,Math.min(6.65,ref.current.position.x+x*delta*3.35));
+      ref.current.position.z=Math.max(-4.65,Math.min(5.05,ref.current.position.z+z*delta*3.35));
       ref.current.rotation.y=Math.atan2(x,z);
     }
     const gait=moving?Math.sin(clock.elapsedTime*10):0;
@@ -272,15 +287,18 @@ function Player({accent,onNearby,touchDirection}:{accent:string;onNearby:(target
     <mesh position={[0,.02,0]} rotation={[-Math.PI/2,0,0]}><circleGeometry args={[.48,24]}/><meshBasicMaterial color="#1c211b" transparent opacity={.2}/></mesh>
   </group>;
 }
-function Scene({style,onNearby,touchDirection}:{style?:RoomStyle;onNearby:(target:Target|null)=>void;touchDirection:{x:number;z:number}|null}) {
+function Scene({style,onNearby,touchDirection,moveTarget,onArrive,onGroundTap,onTargetTap}:{style?:RoomStyle;onNearby:(target:Target|null)=>void;touchDirection:{x:number;z:number}|null;moveTarget:{x:number;z:number;id:string;interaction:Interaction|null}|null;onArrive:(interaction:Interaction|null)=>void;onGroundTap:(position:[number,number])=>void;onTargetTap:(target:Target)=>void}) {
   const sceneStyle:RoomStyle=style ?? {label:"STARTER APARTMENT",subtitle:"your first home",wall:"#eee7dc",floor:"#c8b8a6",furniture:"#4d5149",accent:"#d98b7b",luxe:false};
 
   return <>
     <ambientLight intensity={1.2}/>
     <directionalLight position={[5,10,7]} intensity={2.3} castShadow shadow-mapSize={[1024,1024]}/>
     <hemisphereLight args={["#f8f3d9","#7b936f",1.3]}/>
-    <StarterApartment/>
-    <Player accent={sceneStyle.accent} onNearby={onNearby} touchDirection={touchDirection}/>
+    <StarterApartment onGroundTap={onGroundTap}/>
+    {worldTargets.map((target) => <mesh key={target.id} position={[target.position[0],0.018,target.position[1]]} rotation={[-Math.PI/2,0,0]} onPointerDown={(event)=>{event.stopPropagation();onTargetTap(target);}}>
+      <circleGeometry args={[0.56,28]}/><meshBasicMaterial color={target.kind==="person"?"#e9b85b":"#a8d96a"} transparent opacity={0.16} depthWrite={false}/>
+    </mesh>)}
+    <Player accent={sceneStyle.accent} onNearby={onNearby} touchDirection={touchDirection} moveTarget={moveTarget} onArrive={onArrive}/>
   </>;
 }
 
@@ -288,6 +306,7 @@ export default function CryptoRoom(props:{style?:RoomStyle;originName?:string;ca
   const [active,setActive]=useState<Interaction|null>(null);
   const [nearby,setNearby]=useState<Target|null>(null);
   const [touchDirection,setTouchDirection]=useState<{x:number;z:number}|null>(null);
+  const [moveTarget,setMoveTarget]=useState<{x:number;z:number;id:string;interaction:Interaction|null}|null>(null);
   const [toast,setToast]=useState<string|null>(null);
   const action=active && isHomeAction(active)?homeActions[active]:null;
   const target=active?worldTargets.find(item=>item.id===active):null;
@@ -301,9 +320,29 @@ export default function CryptoRoom(props:{style?:RoomStyle;originName?:string;ca
     return ()=>window.removeEventListener("keydown",interact);
   },[nearby,active]);
 
+  const walkToTarget=(next:Target)=>{
+    setActive(null);
+    setMoveTarget({x:next.position[0],z:next.position[1],id:next.id+"-"+Date.now(),interaction:next.id});
+  };
+  const walkToFloor=(position:[number,number])=>{
+    setActive(null);
+    setMoveTarget({x:Math.max(-6.3,Math.min(6.3,position[0])),z:Math.max(-4.4,Math.min(4.8,position[1])),id:"walk-"+Date.now(),interaction:null});
+  };
+  const arriveAt=(interaction:Interaction|null)=>{setMoveTarget(null);if(interaction)setActive(interaction);};
+
   const perform=()=>{
     if(!active)return;
-    if(isHomeAction(active) && action){onComplete?.({need:action.need,amount:action.amount,action:active});setToast(action.need==="CASH"?"+$120 earned · bounty shipped":`+${action.amount} ${action.need.toLowerCase()} restored`);} else {const name=target?.label ?? "resident";onMeet?.(name);setToast(`${name} remembers this conversation · trust up`);}
+    if(isHomeAction(active) && action){
+      onComplete?.({need:action.need,amount:action.amount,action:active});
+      const stories:Record<HomeAction,string>={
+        sleep:"You pull the duvet up. The city carries on while you sleep.",
+        hygiene:"Water runs, you clean up, and feel ready to face the day.",
+        cook:"You put together a quick meal before heading back out.",
+        work:"You finish the bounty, package the work, and send it to the client.",
+        watch:"You sink into the sofa and let the market noise fade for a bit."
+      };
+      setToast(stories[active]);
+    } else {const name=target?.label ?? "resident";onMeet?.(name);setToast(`You spend a few minutes talking with ${name.toLowerCase()}. A familiar face in Genesis Hub.`);}
     setActive(null);
     window.setTimeout(()=>setToast(null),1800);
   };
@@ -311,12 +350,12 @@ export default function CryptoRoom(props:{style?:RoomStyle;originName?:string;ca
   return (
     <div className="crypto-room-wrap">
       <Canvas camera={{position:[8.5,9,15],fov:44}} dpr={[1,1.25]} gl={{antialias:false,powerPreference:"low-power"}} shadows>
-        <Scene onNearby={setNearby} touchDirection={touchDirection}/>
+        <Scene onNearby={setNearby} touchDirection={touchDirection} moveTarget={moveTarget} onArrive={arriveAt} onGroundTap={walkToFloor} onTargetTap={walkToTarget}/>
       </Canvas>
 
-      <div className="home-hint">MOVE: WASD / ARROWS · PHONE: D-PAD · WALK TO OBJECTS, THEN INTERACT</div>
+      <div className="home-hint">TAP THE FLOOR TO WALK · TAP A PLACE TO WALK OVER AND USE IT</div>
       <div className="city-world-label"><span>YOUR FIRST HOME</span><strong>STARTER APARTMENT · GENESIS HUB</strong></div>
-      {nearby && !active && <button className="proximity-prompt" onClick={()=>setActive(nearby.id)}><span>NEARBY · {nearby.label}</span><strong>{nearby.kind === "person" ? "TALK" : "INTERACT"}: {nearby.title} <b>↵</b></strong></button>}
+      {nearby && !active && !moveTarget && <button className="proximity-prompt" onClick={()=>setActive(nearby.id)}><span>YOU ARE HERE · {nearby.label}</span><strong>{nearby.kind === "person" ? "TALK TO" : "USE"} {nearby.title} <b>↵</b></strong></button>}
       <div className="mobile-dpad" aria-label="Character movement controls">
         <button type="button" aria-label="Move up" onPointerDown={(event)=>{event.preventDefault();event.currentTarget.setPointerCapture(event.pointerId);setTouchDirection({x:0,z:-1});}} onPointerUp={()=>setTouchDirection(null)} onPointerCancel={()=>setTouchDirection(null)} onLostPointerCapture={()=>setTouchDirection(null)}>▲</button>
         <button type="button" aria-label="Move left" onPointerDown={(event)=>{event.preventDefault();event.currentTarget.setPointerCapture(event.pointerId);setTouchDirection({x:-1,z:0});}} onPointerUp={()=>setTouchDirection(null)} onPointerCancel={()=>setTouchDirection(null)} onLostPointerCapture={()=>setTouchDirection(null)}>◀</button>
