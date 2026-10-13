@@ -269,7 +269,7 @@ function Player({accent,onNearby,moveTarget,onArrive}:{accent:string;onNearby:(t
     <mesh position={[-.09,1.345,.315]} rotation={[0,0,-.08]}><boxGeometry args={[.075,.016,.018]}/><meshStandardMaterial color="#342522" roughness={.85}/></mesh>
     <mesh position={[.09,1.345,.315]} rotation={[0,0,.08]}><boxGeometry args={[.075,.016,.018]}/><meshStandardMaterial color="#342522" roughness={.85}/></mesh>
     {/* Short textured twists give the silhouette more character than a smooth helmet. */}
-    {[-.22,-.12,0,.12,.22].map((x,i)=><mesh key={i} position={[x,1.51,.13]} castShadow><sphereGeometry args={[.09,12,10]}/><meshStandardMaterial color={i%2?"#2b2220":"#1e1b1a"} roughness={.96}/></mesh>}
+    {[-.22,-.12,0,.12,.22].map((x,i)=><mesh key={i} position={[x,1.51,.13]} castShadow><sphereGeometry args={[.09,12,10]}/><meshStandardMaterial color={i%2?"#2b2220":"#1e1b1a"} roughness={.96}/></mesh>)}
     <mesh position={[0,1.19,.311]} castShadow><sphereGeometry args={[.022,10,8]}/><meshStandardMaterial color="#8c5a46" roughness={.8}/></mesh>
     <mesh position={[0,1.13,.305]}><boxGeometry args={[.075,.018,.015]}/><meshStandardMaterial color="#603b34" roughness={.8}/></mesh>
     {/* Hoodie torso with front panel, zipper and drawstrings */}
