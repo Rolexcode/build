@@ -163,7 +163,7 @@ function CitySheet({ selected, select, close, onGo }: { selected: string; select
   return <div className="city-overlay" role="dialog" aria-modal="true" aria-label="Crypto City map">
     <section className="city-sheet">
       <header><div><span>CRYPTO CITY · DAY 01</span><strong>Where are you going?</strong></div><button onClick={close} aria-label="Close city map">×</button></header>
-      <div className="city-mini-map"><div className="map-river" /><div className="map-road r1" /><div className="map-road r2" /><div className="map-road r3" /><div className="map-road r4" />{districts.map(district => <button key={district.name} className={`district-pin ${selected === district.name ? "selected" : ""}`} style={{ left: district.x, top: district.y }} onClick={() => select(district.name)}><span>{district.tag}</span><strong>{district.name}</strong></button>)}</div>
+      <div className="city-mini-map"><div className="map-atmosphere"><span>GENESIS CITY</span><b>● LIVE</b><small>08:42 AM · COMMUTERS MOVING</small></div><div className="map-river" /><div className="map-road r1" /><div className="map-road r2" /><div className="map-road r3" /><div className="map-road r4" /><div className="map-blocks" aria-hidden="true"><i className="block-tower tower-a"/><i className="block-tower tower-b"/><i className="block-tower tower-c"/><i className="block-tower tower-d"/><i className="block-tower tower-e"/><i className="block-tower tower-f"/></div><div className="map-traffic" aria-hidden="true"><i/><i/><i/></div><div className="map-pedestrians" aria-hidden="true"><i/><i/><i/><i/><i/></div><div className="map-you-pin"><b>YOU</b><i>◆</i></div>{districts.map(district => <button key={district.name} className={`district-pin ${selected === district.name ? "selected" : ""}`} style={{ left: district.x, top: district.y }} onClick={() => select(district.name)}><span>{district.tag}</span><strong>{district.name}</strong></button>)}</div>
       <div className="nearby-card"><div><span>{venue.type}</span><strong>{venue.name}</strong><p>{venue.npc} · {venue.role}</p></div><div className="nearby-actions"><button onClick={() => onGo(venue)}>ENTER VENUE →</button></div></div>
     </section>
   </div>;
@@ -494,9 +494,9 @@ export default function Home() {
           </div>
           <div className="city-map-card">
             <div className="map-card-head"><span>CRYPTO CITY</span><b>DAY 01 · 08:42</b></div>
-            <div className="city-map">
-              <div className="map-river" />
+            <div className="city-map"><div className="map-atmosphere"><span>GENESIS CITY</span><b>● LIVE</b><small>08:42 AM · COMMUTERS MOVING</small></div><div className="map-river" />
               <div className="map-road r1" /><div className="map-road r2" /><div className="map-road r3" /><div className="map-road r4" />
+              <div className="map-blocks" aria-hidden="true"><i className="block-tower tower-a"/><i className="block-tower tower-b"/><i className="block-tower tower-c"/><i className="block-tower tower-d"/><i className="block-tower tower-e"/><i className="block-tower tower-f"/></div><div className="map-traffic" aria-hidden="true"><i/><i/><i/></div><div className="map-pedestrians" aria-hidden="true"><i/><i/><i/><i/><i/></div>
               {districts.map(d => <button key={d.name} className={`district-pin ${selected.name === d.name ? "selected" : ""}`} style={{left:d.x,top:d.y}} onClick={() => setSelectedDistrict(d.name)}><span>{d.tag}</span><strong>{d.name}</strong></button>)}
               <div className="you-marker"><span>YOU</span><b>◆</b></div>
             </div>
