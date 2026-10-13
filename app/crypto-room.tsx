@@ -156,7 +156,7 @@ function StarterApartment({onGroundTap}:{onGroundTap:(position:[number,number])=
     <Box position={[0, 0.04, 5.72]} size={[2.2, 0.08, 0.22]} color="#8c6c4b" />
   </>;
 }
-function Player({accent,onNearby,moveTarget,onArrive}:{accent:string;onNearby:(target:Target|null)=>void;moveTarget:{x:number;z:number;id:string;interaction:Interaction|null}|null;onArrive:(interaction:Interaction|null)=>void}) {
+function Player({accent,energy,onNearby,moveTarget,onArrive}:{accent:string;energy:number;onNearby:(target:Target|null)=>void;moveTarget:{x:number;z:number;id:string;interaction:Interaction|null}|null;onArrive:(interaction:Interaction|null)=>void}) {
   const ref=useRef<Group>(null);
   const leftArm=useRef<Group>(null);
   const rightArm=useRef<Group>(null);
@@ -207,8 +207,8 @@ function Player({accent,onNearby,moveTarget,onArrive}:{accent:string;onNearby:(t
       if(moving){const length=Math.hypot(x,z);x/=length;z/=length;}
     }
     if(moving){
-      const nextX=Math.max(-6.65,Math.min(6.65,ref.current.position.x+x*delta*3.35));
-      const nextZ=Math.max(-4.65,Math.min(5.05,ref.current.position.z+z*delta*3.35));
+      const nextX=Math.max(-6.65,Math.min(6.65,ref.current.position.x+x*delta*(energy<20?2.0:energy<45?2.65:3.35)));
+      const nextZ=Math.max(-4.65,Math.min(5.05,ref.current.position.z+z*delta*(energy<20?2.0:energy<45?2.65:3.35)));
       const blockers:[number,number,number,number][]=[
         [-6.15,-3.35,-4.35,-1.0],
         [-5.55,-2.95,1.88,3.02],
@@ -223,8 +223,8 @@ function Player({accent,onNearby,moveTarget,onArrive}:{accent:string;onNearby:(t
       if(!blocked(ref.current.position.x,nextZ))ref.current.position.z=nextZ;
       ref.current.rotation.y=Math.atan2(x,z);
     }
-    const gait=moving?Math.sin(clock.elapsedTime*10):0;
-    ref.current.position.y=moving?Math.abs(Math.sin(clock.elapsedTime*10))*.035:Math.sin(clock.elapsedTime*1.6)*.012;
+    const gait=moving?Math.sin(clock.elapsedTime*(energy<20?6.5:10)):0;
+    ref.current.position.y=moving?Math.abs(Math.sin(clock.elapsedTime*(energy<20?6.5:10)))*(energy<20?.018:.035):Math.sin(clock.elapsedTime*1.6)*.012;
     if(leftArm.current)leftArm.current.rotation.x=gait*.58;
     if(rightArm.current)rightArm.current.rotation.x=-gait*.58;
     if(leftLeg.current)leftLeg.current.rotation.x=-gait*.48;
@@ -305,7 +305,7 @@ function Player({accent,onNearby,moveTarget,onArrive}:{accent:string;onNearby:(t
     <mesh position={[0,.02,0]} rotation={[-Math.PI/2,0,0]}><circleGeometry args={[.48,24]}/><meshBasicMaterial color="#1c211b" transparent opacity={.2}/></mesh>
   </group>;
 }
-function Scene({style,onNearby,moveTarget,onArrive,onGroundTap,onTargetTap}:{style?:RoomStyle;onNearby:(target:Target|null)=>void;moveTarget:{x:number;z:number;id:string;interaction:Interaction|null}|null;onArrive:(interaction:Interaction|null)=>void;onGroundTap:(position:[number,number])=>void;onTargetTap:(target:Target)=>void}) {
+function Scene({style,energy,onNearby,moveTarget,onArrive,onGroundTap,onTargetTap}:{style?:RoomStyle;energy:number;onNearby:(target:Target|null)=>void;moveTarget:{x:number;z:number;id:string;interaction:Interaction|null}|null;onArrive:(interaction:Interaction|null)=>void;onGroundTap:(position:[number,number])=>void;onTargetTap:(target:Target)=>void}) {
   const sceneStyle:RoomStyle=style ?? {label:"STARTER APARTMENT",subtitle:"your first home",wall:"#eee7dc",floor:"#c8b8a6",furniture:"#4d5149",accent:"#d98b7b",luxe:false};
 
   return <>
@@ -316,11 +316,12 @@ function Scene({style,onNearby,moveTarget,onArrive,onGroundTap,onTargetTap}:{sty
     {worldTargets.map((target) => <mesh key={target.id} position={[target.position[0],0.018,target.position[1]]} rotation={[-Math.PI/2,0,0]} onPointerDown={(event)=>{event.stopPropagation();onTargetTap(target);}}>
       <circleGeometry args={[0.56,28]}/><meshBasicMaterial color={target.kind==="person"?"#e9b85b":"#a8d96a"} transparent opacity={0.16} depthWrite={false}/>
     </mesh>)}
-    <Player accent={sceneStyle.accent} onNearby={onNearby} moveTarget={moveTarget} onArrive={onArrive}/>
+    <Player accent={sceneStyle.accent} energy={energy} onNearby={onNearby} moveTarget={moveTarget} onArrive={onArrive}/>
   </>;
 }
 
-export default function CryptoRoom(props:{style?:RoomStyle;originName?:string;cash?:string;onComplete?:(result:{need:string;amount:number;action:HomeAction})=>void;onMeet?:(npc:string)=>void}) {
+type PlayerNeeds = { energy:number; hunger:number; fun:number; hygiene:number };
+export default function CryptoRoom(props:{style?:RoomStyle;originName?:string;cash?:number|string;needs?:PlayerNeeds;onComplete?:(result:{need:string;amount:number;action:HomeAction})=>void;onMeet?:(npc:string)=>void}) {
   const [active,setActive]=useState<Interaction|null>(null);
   const [nearby,setNearby]=useState<Target|null>(null);
   const [moveTarget,setMoveTarget]=useState<{x:number;z:number;id:string;interaction:Interaction|null}|null>(null);
@@ -328,6 +329,8 @@ export default function CryptoRoom(props:{style?:RoomStyle;originName?:string;ca
   const action=active && isHomeAction(active)?homeActions[active]:null;
   const target=active?worldTargets.find(item=>item.id===active):null;
   const { onComplete, onMeet } = props;
+  const energy = props.needs?.energy ?? 82;
+  const roomStyle = props.style ?? styles[props.originName ?? ""] ?? {label:"STARTER APARTMENT",subtitle:"your first home",wall:"#eee7dc",floor:"#c8b8a6",furniture:"#4d5149",accent:"#d98b7b",luxe:false};
 
   useEffect(()=>{
     const interact=(event:KeyboardEvent)=>{
@@ -368,7 +371,7 @@ export default function CryptoRoom(props:{style?:RoomStyle;originName?:string;ca
   return (
     <div className="crypto-room-wrap">
       <Canvas camera={{position:[8.5,9,15],fov:44}} dpr={[1,1.25]} gl={{antialias:false,powerPreference:"low-power"}} shadows>
-        <Scene onNearby={setNearby} moveTarget={moveTarget} onArrive={arriveAt} onGroundTap={walkToFloor} onTargetTap={walkToTarget}/>
+        <Scene style={roomStyle} energy={energy} onNearby={setNearby} moveTarget={moveTarget} onArrive={arriveAt} onGroundTap={walkToFloor} onTargetTap={walkToTarget}/>
       </Canvas>
 
       <div className="home-hint">TAP THE FLOOR TO WALK · TAP A PLACE TO WALK OVER AND USE IT</div>
