@@ -491,3 +491,50 @@ html.touch-layout .scene-copy {
     border-radius: 18px;
   }
 }
+
+
+/* Living-city map pass: recognizable blocks, moving traffic and residents. */
+.city-mini-map,.city-map{isolation:isolate;background:linear-gradient(145deg,#c7d8bd 0%,#dce6cc 38%,#b9ceb0 100%)}
+.map-atmosphere{position:absolute;z-index:2;top:13px;left:15px;display:grid;grid-template-columns:auto auto;gap:4px 12px;align-items:center;padding:9px 11px;border:1px solid rgba(255,255,255,.52);border-radius:12px;background:rgba(29,48,36,.82);color:#f7f6e9;box-shadow:0 8px 24px rgba(30,45,31,.14);backdrop-filter:blur(8px)}
+.map-atmosphere span{font:9px 'Space Mono';letter-spacing:.1em}
+.map-atmosphere b{color:#c4f47b;font:8px 'Space Mono';text-align:right}
+.map-atmosphere small{grid-column:1/-1;color:#cbd7c4;font:7px 'Space Mono';letter-spacing:.04em}
+.map-blocks{position:absolute;inset:0;z-index:1;pointer-events:none}
+.block-tower{position:absolute;display:block;width:clamp(24px,5%,50px);height:clamp(34px,9%,80px);border:1px solid rgba(44,61,44,.18);border-radius:3px 3px 1px 1px;background:linear-gradient(90deg,#7f9c7d,#a9c19b 60%,#6d8a6c);box-shadow:7px 8px 0 rgba(70,92,67,.18),inset 0 5px 0 rgba(255,255,255,.16)}
+.block-tower:after{position:absolute;inset:9px 5px;content:"";background:repeating-linear-gradient(0deg,transparent 0 7px,rgba(238,245,211,.68) 7px 10px),repeating-linear-gradient(90deg,transparent 0 8px,rgba(238,245,211,.55) 8px 11px)}
+.tower-a{left:9%;top:22%;height:22%;width:6%;background:linear-gradient(90deg,#627b71,#9ab7a0)}
+.tower-b{left:18%;top:57%;height:17%;width:5%}
+.tower-c{left:38%;top:15%;height:24%;width:7%;background:linear-gradient(90deg,#8b9e84,#bdc8a5)}
+.tower-d{left:66%;top:14%;height:21%;width:6%;background:linear-gradient(90deg,#7c9a8e,#aac6ad)}
+.tower-e{left:78%;top:52%;height:25%;width:7%;background:linear-gradient(90deg,#6b8478,#a3b79b)}
+.tower-f{left:47%;top:68%;height:17%;width:5%;background:linear-gradient(90deg,#a18f6d,#d1bd91)}
+.city-mini-map .map-blocks{opacity:.74}
+.city-map .map-blocks{opacity:.88}
+.map-traffic{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden}
+.map-traffic i{position:absolute;display:block;width:14px;height:7px;border:1px solid rgba(255,255,255,.72);border-radius:3px;background:#d86d4f;box-shadow:0 2px 5px rgba(42,49,36,.25);animation:city-drive 10s linear infinite}
+.map-traffic i:nth-child(1){top:37%;left:-4%;animation-duration:11s}
+.map-traffic i:nth-child(2){top:62%;left:102%;background:#e7d18a;animation-duration:14s;animation-direction:reverse}
+.map-traffic i:nth-child(3){top:80%;left:-6%;background:#668dba;animation-duration:16s;animation-delay:-6s}
+.map-pedestrians{position:absolute;inset:0;z-index:3;pointer-events:none}
+.map-pedestrians i{position:absolute;width:5px;height:5px;border-radius:50%;background:#f9f0d9;box-shadow:0 4px 0 1px #445a43;animation:city-walk 3.4s ease-in-out infinite}
+.map-pedestrians i:nth-child(1){left:31%;top:47%}
+.map-pedestrians i:nth-child(2){left:59%;top:31%;animation-delay:-1s}
+.map-pedestrians i:nth-child(3){left:70%;top:74%;animation-delay:-2s}
+.map-pedestrians i:nth-child(4){left:42%;top:61%;animation-delay:-.5s}
+.map-pedestrians i:nth-child(5){left:15%;top:78%;animation-delay:-2.6s}
+.map-you-pin{position:absolute;z-index:7;left:48%;top:50%;display:grid;justify-items:center;gap:3px;transform:translate(-50%,-50%);pointer-events:none}
+.map-you-pin b{padding:4px 7px;border-radius:6px;background:#1e2a20;color:#fffdf6;font:7px 'Space Mono';letter-spacing:.1em}
+.map-you-pin i{display:grid;place-items:center;width:24px;height:24px;border:2px solid #f8f6e9;border-radius:50%;background:#b4e65f;color:#26351e;font-size:11px;font-style:normal;box-shadow:0 0 0 6px rgba(183,239,69,.22);animation:you-pulse 2s ease-out infinite}
+.city-mini-map .map-you-pin{left:48%;top:50%}
+.city-mini-map .map-atmosphere{top:10px;left:10px;padding:7px 8px}
+.city-mini-map .map-atmosphere span{font-size:7px}
+.city-mini-map .map-atmosphere small{font-size:6px}
+.district-pin{z-index:5;transition:transform .18s ease,box-shadow .18s ease}
+.district-pin:before{position:absolute;inset:-5px;z-index:-1;border:1px solid rgba(255,255,255,.6);border-radius:13px;content:"";opacity:0;transform:scale(.82);transition:opacity .18s ease,transform .18s ease}
+.district-pin:hover,.district-pin.selected{transform:translate(-50%,-50%) scale(1.06);box-shadow:0 9px 25px rgba(29,43,26,.28)}
+.district-pin.selected:before{opacity:1;transform:scale(1)}
+@keyframes city-drive{0%{transform:translateX(0)}100%{transform:translateX(1200%)}}
+@keyframes city-walk{0%,100%{transform:translate(0,0)}50%{transform:translate(6px,-4px)}}
+@keyframes you-pulse{0%{box-shadow:0 0 0 0 rgba(183,239,69,.4)}100%{box-shadow:0 0 0 11px rgba(183,239,69,0)}}
+@media(max-width:600px){.map-atmosphere{top:8px;left:8px;padding:6px 8px;gap:3px 7px}.map-atmosphere span{font-size:7px}.map-atmosphere small{font-size:6px}.block-tower{box-shadow:4px 5px 0 rgba(70,92,67,.16)}.map-you-pin i{width:19px;height:19px}}
+@media(prefers-reduced-motion:reduce){.map-traffic i,.map-pedestrians i,.map-you-pin i{animation:none}}
