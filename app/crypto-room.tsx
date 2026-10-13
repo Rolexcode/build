@@ -251,8 +251,14 @@ function Player({accent,onNearby,touchDirection,moveTarget,onArrive}:{accent:str
     <mesh position={[.277,1.28,.015]} castShadow><sphereGeometry args={[.055,12,10]}/><meshStandardMaterial color="#b97e5e" roughness={.9}/></mesh>
     {/* Short fringe sits above the eyes instead of obscuring the face. */}
     <mesh position={[0,1.42,.27]} castShadow><boxGeometry args={[.31,.065,.05]}/><meshStandardMaterial color="#25201f" roughness={.8}/></mesh>
-    <mesh position={[-.09,1.29,.304]} castShadow><sphereGeometry args={[.027,12,10]}/><meshStandardMaterial color="#17211e" roughness={.5}/></mesh>
-    <mesh position={[.09,1.29,.304]} castShadow><sphereGeometry args={[.027,12,10]}/><meshStandardMaterial color="#17211e" roughness={.5}/></mesh>
+    <mesh position={[-.09,1.29,.298]}><sphereGeometry args={[.041,14,12]}/><meshStandardMaterial color="#f4e9d7" roughness={.55}/></mesh>
+    <mesh position={[.09,1.29,.298]}><sphereGeometry args={[.041,14,12]}/><meshStandardMaterial color="#f4e9d7" roughness={.55}/></mesh>
+    <mesh position={[-.09,1.29,.331]}><sphereGeometry args={[.022,12,10]}/><meshStandardMaterial color="#17211e" roughness={.45}/></mesh>
+    <mesh position={[.09,1.29,.331]}><sphereGeometry args={[.022,12,10]}/><meshStandardMaterial color="#17211e" roughness={.45}/></mesh>
+    <mesh position={[-.09,1.345,.315]} rotation={[0,0,-.08]}><boxGeometry args={[.075,.016,.018]}/><meshStandardMaterial color="#342522" roughness={.85}/></mesh>
+    <mesh position={[.09,1.345,.315]} rotation={[0,0,.08]}><boxGeometry args={[.075,.016,.018]}/><meshStandardMaterial color="#342522" roughness={.85}/></mesh>
+    {/* Short textured twists give the silhouette more character than a smooth helmet. */}
+    {[-.22,-.12,0,.12,.22].map((x,i)=><mesh key={i} position={[x,1.51,.13]} castShadow><sphereGeometry args={[.09,12,10]}/><meshStandardMaterial color={i%2?"#2b2220":"#1e1b1a"} roughness={.96}/></mesh>}
     <mesh position={[0,1.19,.311]} castShadow><sphereGeometry args={[.022,10,8]}/><meshStandardMaterial color="#8c5a46" roughness={.8}/></mesh>
     <mesh position={[0,1.13,.305]}><boxGeometry args={[.075,.018,.015]}/><meshStandardMaterial color="#603b34" roughness={.8}/></mesh>
     {/* Hoodie torso with front panel, zipper and drawstrings */}
@@ -262,6 +268,7 @@ function Player({accent,onNearby,touchDirection,moveTarget,onArrive}:{accent:str
     <mesh position={[.075,.81,.282]}><cylinderGeometry args={[.012,.012,.18,8]}/><meshStandardMaterial color="#f0e5c9" roughness={.8}/></mesh>
     <mesh position={[.16,.48,.26]}><boxGeometry args={[.12,.11,.025]}/><meshStandardMaterial color="#f1e8d7" roughness={.7}/></mesh>
     <mesh position={[.16,.48,.278]}><boxGeometry args={[.06,.025,.012]}/><meshStandardMaterial color="#5c7650" roughness={.7}/></mesh>
+    <mesh position={[0,.37,.287]}><torusGeometry args={[.12,.012,6,18]}/><meshStandardMaterial color="#d4b46e" metalness={.55} roughness={.4}/></mesh>
     {/* Pivoted sleeves and forearms animate while walking. */}
     <group ref={leftArm} position={[-.3,.82,0]}>
       <mesh position={[0,-.18,0]} rotation={[0,0,-.08]} castShadow><capsuleGeometry args={[.105,.28,8,12]}/><meshStandardMaterial color={accent} roughness={.72}/></mesh>
