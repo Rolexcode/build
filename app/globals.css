@@ -538,3 +538,13 @@ html.touch-layout .scene-copy {
 @keyframes you-pulse{0%{box-shadow:0 0 0 0 rgba(183,239,69,.4)}100%{box-shadow:0 0 0 11px rgba(183,239,69,0)}}
 @media(max-width:600px){.map-atmosphere{top:8px;left:8px;padding:6px 8px;gap:3px 7px}.map-atmosphere span{font-size:7px}.map-atmosphere small{font-size:6px}.block-tower{box-shadow:4px 5px 0 rgba(70,92,67,.16)}.map-you-pin i{width:19px;height:19px}}
 @media(prefers-reduced-motion:reduce){.map-traffic i,.map-pedestrians i,.map-you-pin i{animation:none}}
+
+/* Direct-touch play: remove the old gamepad layout and leave the scene as the control. */
+.mobile-dpad{display:none!important}
+@media(max-width:650px){.home-hint{bottom:10px!important;left:12px!important;right:12px!important;width:auto!important;max-width:none!important;padding:8px 10px;border:1px solid rgba(255,255,255,.14);border-radius:10px;background:rgba(23,31,22,.68);backdrop-filter:blur(8px)}.proximity-prompt{bottom:48px!important;max-width:calc(100% - 20px)!important;width:auto!important;left:10px!important;right:10px!important}.home-action-modal{align-items:end!important;padding:10px!important}.home-action-card{max-height:82dvh;overflow:auto;border-radius:22px!important}}
+html.touch-layout .mobile-dpad{display:none!important}
+html.touch-layout .home-hint{bottom:10px!important;left:12px!important;right:12px!important;width:auto!important;max-width:none!important;padding:8px 10px;border:1px solid rgba(255,255,255,.14);border-radius:10px;background:rgba(23,31,22,.68);backdrop-filter:blur(8px)}
+html.touch-layout .proximity-prompt{bottom:48px!important;left:10px!important;right:10px!important;width:auto!important;max-width:none!important}
+.city-mini-map .map-you-pin{left:41%;top:60%}
+.city-map .you-marker{left:44%;top:58%}
+@media(max-width:600px){.city-mini-map .map-you-pin{left:39%;top:61%}.city-map .you-marker{left:43%;top:59%}}
