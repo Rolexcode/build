@@ -352,7 +352,7 @@ export default function Home() {
       setNeeds(current => ({ ...current, energy: 100, hunger: Math.max(0, current.hunger - 12), fun: Math.min(100, current.fun + 5) }));
       setHour(current => (current + 8) % 24);
       setLifeLog(current => [`${String(hour).padStart(2, "0")}:00 · Slept at Block 7 · a new part of the city woke up`, ...current].slice(0, 4));
-      showNotice("You slept through eight hours · energy restored");
+      showNotice("You sleep through eight hours. Outside, Genesis Hub changes from morning to afternoon.");
       return;
     }
     if (need === "CASH") {
@@ -360,13 +360,14 @@ export default function Home() {
       setReputation(current => Math.min(100, current + 1));
       setHour(current => (current + 2) % 24);
       setLifeLog(current => [`${String(hour).padStart(2, "0")}:00 · Remote crypto task delivered · +$${amount}`, ...current].slice(0, 4));
-      showNotice(`Contract delivered · +$${amount} · reputation up`);
+      showNotice(`Bounty submitted. ${amount} lands in your balance, and your name gets a little more familiar.`);
       return;
     }
     const key = need.toLowerCase() as "energy" | "hunger" | "fun" | "hygiene";
     if (key in needs) setNeeds(current => ({ ...current, [key]: Math.min(100, current[key] + amount) }));
     setHour(current => (current + 1) % 24);
-    showNotice(`${need.toLowerCase()} restored · your day keeps moving`);
+    const stories:Record<string,string> = { HYGIENE:"You wash up, change into a clean fit, and feel ready to head out.", HUNGER:"You eat at home instead of spending money outside.", FUN:"You take a breather on the sofa and let your head clear." };
+    showNotice(stories[need] ?? "A little time passes at home.");
   };
 
   const commitEvent = (choice: EventChoice) => {
