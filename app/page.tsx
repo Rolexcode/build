@@ -356,11 +356,16 @@ export default function Home() {
       return;
     }
     if (need === "CASH") {
+      if (needs.energy < 12) {
+        showNotice("You are too exhausted to finish this bounty. Get some sleep first.");
+        return;
+      }
       setCash(current => current + amount);
       setReputation(current => Math.min(100, current + 1));
+      setNeeds(current => ({ ...current, energy: Math.max(0, current.energy - 12), hunger: Math.max(0, current.hunger - 6) }));
       setHour(current => (current + 2) % 24);
-      setLifeLog(current => [`${String(hour).padStart(2, "0")}:00 · Remote crypto task delivered · +$${amount}`, ...current].slice(0, 4));
-      showNotice(`Bounty submitted. ${amount} lands in your balance, and your name gets a little more familiar.`);
+      setLifeLog(current => [`${String(hour).padStart(2, "0")}:00 · Remote crypto task delivered · +${amount}`, ...current].slice(0, 4));
+      showNotice(`Bounty submitted. You earned ${amount}, but the two-hour grind took a little energy.`);
       return;
     }
     const key = need.toLowerCase() as "energy" | "hunger" | "fun" | "hygiene";
@@ -539,7 +544,7 @@ export default function Home() {
               {completedEvents.length === dayOneEvents.length && <div className="queue-empty"><strong>City quiet—for now.</strong><span>You used every Day One opportunity. Sleep or check your phone for the next move.</span></div>}
             </div>
           </div>
-          <div className="room"><CryptoRoom originName={origin.name} cash={origin.cash} onComplete={completeHomeAction} onMeet={(npc) => { const names: Record<string, string> = { MARA: "Mara", RAE: "Rae Imani", DEX: "Dex", NIA: "Nia" }; const contact = names[npc] ?? npc; strengthenRelationship(contact, 6); setLifeLog(current => [`${String(hour).padStart(2, "0")}:00 · Talked to ${contact} in Genesis Hub`, ...current].slice(0, 4)); showNotice(`${contact} is now part of your city story · trust up`); }} /></div>
+          <div className="room"><CryptoRoom originName={origin.name} cash={cash} needs={needs} onComplete={completeHomeAction} onMeet={(npc) => { const names: Record<string, string> = { MARA: "Mara", RAE: "Rae Imani", DEX: "Dex", NIA: "Nia" }; const contact = names[npc] ?? npc; strengthenRelationship(contact, 6); setLifeLog(current => [`${String(hour).padStart(2, "0")}:00 · Talked to ${contact} in Genesis Hub`, ...current].slice(0, 4)); showNotice(`${contact} is now part of your city story · trust up`); }} /></div>
         </section>
         <aside className="life-ledger" aria-label="Life ledger"><div><span>AVAILABLE</span><strong>${cash.toLocaleString()}</strong></div><div><span>RENT DUE</span><strong className={rentDue ? "rent-warning" : "rent-clear"}>{rentDue ? `$${rentDue}` : "PAID"}</strong></div><div><span>CITY CREDIT</span><strong className={debt ? "rent-warning" : "rent-clear"}>{debt ? `$${debt}` : "CLEAR"}</strong></div><button onClick={payRent} disabled={!rentDue}>PAY RENT</button><button onClick={payDebt} disabled={!debt}>CLEAR DEBT</button><p>{contacts.length ? `${contacts.slice(-2).join(" · ")} ${contacts.length > 2 ? "and others" : ""} are in your contacts.` : "Meet someone worth keeping close."}</p>{lifeLog[0] && <small>{lifeLog[0]}</small>}</aside>
         {notice && <div className="life-notice" role="status">{notice}</div>}
