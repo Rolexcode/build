@@ -156,7 +156,7 @@ function StarterApartment({onGroundTap}:{onGroundTap:(position:[number,number])=
     <Box position={[0, 0.04, 5.72]} size={[2.2, 0.08, 0.22]} color="#8c6c4b" />
   </>;
 }
-function Player({accent,onNearby,touchDirection,moveTarget,onArrive}:{accent:string;onNearby:(target:Target|null)=>void;touchDirection:{x:number;z:number}|null;moveTarget:{x:number;z:number;id:string;interaction:Interaction|null}|null;onArrive:(interaction:Interaction|null)=>void}) {
+function Player({accent,onNearby,moveTarget,onArrive}:{accent:string;onNearby:(target:Target|null)=>void;moveTarget:{x:number;z:number;id:string;interaction:Interaction|null}|null;onArrive:(interaction:Interaction|null)=>void}) {
   const ref=useRef<Group>(null);
   const leftArm=useRef<Group>(null);
   const rightArm=useRef<Group>(null);
@@ -203,7 +203,6 @@ function Player({accent,onNearby,touchDirection,moveTarget,onArrive}:{accent:str
       if(pressed.has("d")||pressed.has("arrowright"))x+=1;
       if(pressed.has("w")||pressed.has("arrowup"))z-=1;
       if(pressed.has("s")||pressed.has("arrowdown"))z+=1;
-      if(touchDirection){x+=touchDirection.x;z+=touchDirection.z;}
       moving=x!==0||z!==0;
       if(moving){const length=Math.hypot(x,z);x/=length;z/=length;}
     }
@@ -294,7 +293,7 @@ function Player({accent,onNearby,touchDirection,moveTarget,onArrive}:{accent:str
     <mesh position={[0,.02,0]} rotation={[-Math.PI/2,0,0]}><circleGeometry args={[.48,24]}/><meshBasicMaterial color="#1c211b" transparent opacity={.2}/></mesh>
   </group>;
 }
-function Scene({style,onNearby,touchDirection,moveTarget,onArrive,onGroundTap,onTargetTap}:{style?:RoomStyle;onNearby:(target:Target|null)=>void;touchDirection:{x:number;z:number}|null;moveTarget:{x:number;z:number;id:string;interaction:Interaction|null}|null;onArrive:(interaction:Interaction|null)=>void;onGroundTap:(position:[number,number])=>void;onTargetTap:(target:Target)=>void}) {
+function Scene({style,onNearby,moveTarget,onArrive,onGroundTap,onTargetTap}:{style?:RoomStyle;onNearby:(target:Target|null)=>void;moveTarget:{x:number;z:number;id:string;interaction:Interaction|null}|null;onArrive:(interaction:Interaction|null)=>void;onGroundTap:(position:[number,number])=>void;onTargetTap:(target:Target)=>void}) {
   const sceneStyle:RoomStyle=style ?? {label:"STARTER APARTMENT",subtitle:"your first home",wall:"#eee7dc",floor:"#c8b8a6",furniture:"#4d5149",accent:"#d98b7b",luxe:false};
 
   return <>
@@ -305,14 +304,13 @@ function Scene({style,onNearby,touchDirection,moveTarget,onArrive,onGroundTap,on
     {worldTargets.map((target) => <mesh key={target.id} position={[target.position[0],0.018,target.position[1]]} rotation={[-Math.PI/2,0,0]} onPointerDown={(event)=>{event.stopPropagation();onTargetTap(target);}}>
       <circleGeometry args={[0.56,28]}/><meshBasicMaterial color={target.kind==="person"?"#e9b85b":"#a8d96a"} transparent opacity={0.16} depthWrite={false}/>
     </mesh>)}
-    <Player accent={sceneStyle.accent} onNearby={onNearby} touchDirection={touchDirection} moveTarget={moveTarget} onArrive={onArrive}/>
+    <Player accent={sceneStyle.accent} onNearby={onNearby} moveTarget={moveTarget} onArrive={onArrive}/>
   </>;
 }
 
 export default function CryptoRoom(props:{style?:RoomStyle;originName?:string;cash?:string;onComplete?:(result:{need:string;amount:number;action:HomeAction})=>void;onMeet?:(npc:string)=>void}) {
   const [active,setActive]=useState<Interaction|null>(null);
   const [nearby,setNearby]=useState<Target|null>(null);
-  const [touchDirection,setTouchDirection]=useState<{x:number;z:number}|null>(null);
   const [moveTarget,setMoveTarget]=useState<{x:number;z:number;id:string;interaction:Interaction|null}|null>(null);
   const [toast,setToast]=useState<string|null>(null);
   const action=active && isHomeAction(active)?homeActions[active]:null;
@@ -357,19 +355,13 @@ export default function CryptoRoom(props:{style?:RoomStyle;originName?:string;ca
   return (
     <div className="crypto-room-wrap">
       <Canvas camera={{position:[8.5,9,15],fov:44}} dpr={[1,1.25]} gl={{antialias:false,powerPreference:"low-power"}} shadows>
-        <Scene onNearby={setNearby} touchDirection={touchDirection} moveTarget={moveTarget} onArrive={arriveAt} onGroundTap={walkToFloor} onTargetTap={walkToTarget}/>
+        <Scene onNearby={setNearby} moveTarget={moveTarget} onArrive={arriveAt} onGroundTap={walkToFloor} onTargetTap={walkToTarget}/>
       </Canvas>
 
       <div className="home-hint">TAP THE FLOOR TO WALK · TAP A PLACE TO WALK OVER AND USE IT</div>
       <div className="city-world-label"><span>YOUR FIRST HOME</span><strong>STARTER APARTMENT · GENESIS HUB</strong></div>
       {nearby && !active && !moveTarget && <button className="proximity-prompt" onClick={()=>setActive(nearby.id)}><span>YOU ARE HERE · {nearby.label}</span><strong>{nearby.kind === "person" ? "TALK TO" : "USE"} {nearby.title} <b>↵</b></strong></button>}
-      <div className="mobile-dpad" aria-label="Character movement controls">
-        <button type="button" aria-label="Move up" onPointerDown={(event)=>{event.preventDefault();event.currentTarget.setPointerCapture(event.pointerId);setTouchDirection({x:0,z:-1});}} onPointerUp={()=>setTouchDirection(null)} onPointerCancel={()=>setTouchDirection(null)} onLostPointerCapture={()=>setTouchDirection(null)}>▲</button>
-        <button type="button" aria-label="Move left" onPointerDown={(event)=>{event.preventDefault();event.currentTarget.setPointerCapture(event.pointerId);setTouchDirection({x:-1,z:0});}} onPointerUp={()=>setTouchDirection(null)} onPointerCancel={()=>setTouchDirection(null)} onLostPointerCapture={()=>setTouchDirection(null)}>◀</button>
-        <span className="dpad-center" aria-hidden="true">MOVE</span>
-        <button type="button" aria-label="Move right" onPointerDown={(event)=>{event.preventDefault();event.currentTarget.setPointerCapture(event.pointerId);setTouchDirection({x:1,z:0});}} onPointerUp={()=>setTouchDirection(null)} onPointerCancel={()=>setTouchDirection(null)} onLostPointerCapture={()=>setTouchDirection(null)}>▶</button>
-        <button type="button" aria-label="Move down" onPointerDown={(event)=>{event.preventDefault();event.currentTarget.setPointerCapture(event.pointerId);setTouchDirection({x:0,z:1});}} onPointerUp={()=>setTouchDirection(null)} onPointerCancel={()=>setTouchDirection(null)} onLostPointerCapture={()=>setTouchDirection(null)}>▼</button>
-      </div>
+
 
       {active&&target&&(
         <div className="home-action-modal">
